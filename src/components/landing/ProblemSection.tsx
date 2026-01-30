@@ -20,9 +20,9 @@ const problems = [
   },
   {
     icon: DollarSign,
-    title: "Overpaying by Thousands",
-    description: "The average person overpays by $2,400/year because they can't navigate the complex insurance landscape effectively.",
-    stat: "$2.4K",
+    title: "Overpaying by Lakhs",
+    description: "The average Indian overpays by ₹2 lakh/year because they can't navigate the complex insurance landscape effectively.",
+    stat: "₹2L",
     statLabel: "wasted annually",
   },
   {

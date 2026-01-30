@@ -231,7 +231,7 @@ const CustomerProfile = () => {
                             value={formData.firstName}
                             onChange={(e) => updateField("firstName", e.target.value)}
                             className="input-premium"
-                            placeholder="John"
+                            placeholder="Rahul"
                           />
                         </div>
                         <div>
@@ -241,7 +241,7 @@ const CustomerProfile = () => {
                             value={formData.lastName}
                             onChange={(e) => updateField("lastName", e.target.value)}
                             className="input-premium"
-                            placeholder="Doe"
+                            placeholder="Sharma"
                           />
                         </div>
                       </div>
@@ -254,7 +254,7 @@ const CustomerProfile = () => {
                             value={formData.email}
                             onChange={(e) => updateField("email", e.target.value)}
                             className="input-premium"
-                            placeholder="john@example.com"
+                            placeholder="rahul@example.com"
                           />
                         </div>
                         <div>
@@ -264,7 +264,7 @@ const CustomerProfile = () => {
                             value={formData.phone}
                             onChange={(e) => updateField("phone", e.target.value)}
                             className="input-premium"
-                            placeholder="+1 (555) 000-0000"
+                            placeholder="+91 98765 43210"
                           />
                         </div>
                       </div>
@@ -457,7 +457,7 @@ const CustomerProfile = () => {
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-3">Property Type</label>
                         <div className="flex flex-wrap gap-3">
-                          {["Single-family home", "Condo/Apartment", "Townhouse", "Mobile home", "N/A"].map((option) => (
+                          {["Independent House", "Flat/Apartment", "Villa", "Builder Floor", "N/A"].map((option) => (
                             <button
                               key={option}
                               onClick={() => updateField("propertyType", option)}
@@ -480,7 +480,7 @@ const CustomerProfile = () => {
                           value={formData.propertyValue}
                           onChange={(e) => updateField("propertyValue", e.target.value)}
                           className="input-premium"
-                          placeholder="$350,000"
+                          placeholder="₹75,00,000"
                         />
                       </div>
 
@@ -536,7 +536,7 @@ const CustomerProfile = () => {
                           <div>
                             <label className="block text-sm font-medium text-foreground mb-3">Primary Vehicle Type</label>
                             <div className="flex flex-wrap gap-3">
-                              {["Sedan", "SUV", "Truck", "Sports car", "Electric", "Motorcycle"].map((option) => (
+                              {["Hatchback", "Sedan", "SUV", "MUV", "Electric", "Two-Wheeler"].map((option) => (
                                 <button
                                   key={option}
                                   onClick={() => updateField("vehicleType", option)}
@@ -572,9 +572,9 @@ const CustomerProfile = () => {
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">Annual Mileage</label>
+                            <label className="block text-sm font-medium text-foreground mb-3">Annual Running (km)</label>
                             <div className="flex flex-wrap gap-3">
-                              {["Under 5,000", "5,000 - 10,000", "10,000 - 15,000", "15,000+"].map((option) => (
+                              {["Under 5,000 km", "5,000 - 10,000 km", "10,000 - 20,000 km", "20,000+ km"].map((option) => (
                                 <button
                                   key={option}
                                   onClick={() => updateField("annualMileage", option)}
@@ -632,7 +632,7 @@ const CustomerProfile = () => {
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-3">Annual Income Range</label>
                         <div className="flex flex-wrap gap-3">
-                          {["Under $30K", "$30K - $50K", "$50K - $75K", "$75K - $100K", "$100K - $150K", "$150K+"].map((option) => (
+                          {["Under ₹5L", "₹5L - ₹10L", "₹10L - ₹20L", "₹20L - ₹50L", "₹50L - ₹1Cr", "₹1Cr+"].map((option) => (
                             <button
                               key={option}
                               onClick={() => updateField("annualIncome", option)}
