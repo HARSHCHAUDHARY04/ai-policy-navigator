@@ -37,12 +37,12 @@ export const Footer = () => {
           {/* Brand */}
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-accent flex items-center justify-center shadow-glow">
+              <div className="w-11 h-11 rounded-xl bg-gradient-warm flex items-center justify-center shadow-glow">
                 <Shield className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-foreground">InsureAI</span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Smart Coverage</span>
+                <span className="text-lg font-bold text-foreground font-display">InsureAI</span>
+                <span className="text-[10px] text-primary/80 uppercase tracking-widest font-medium">भारत</span>
               </div>
             </Link>
             <p className="text-muted-foreground text-sm max-w-xs mb-6">

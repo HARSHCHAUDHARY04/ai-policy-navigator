@@ -45,14 +45,14 @@ export const Navbar = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
               <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow group-hover:shadow-[0_0_40px_-5px_hsl(186_100%_50%/0.6)] transition-shadow duration-300">
+                <div className="w-11 h-11 rounded-xl bg-gradient-warm flex items-center justify-center shadow-glow group-hover:shadow-[0_0_50px_-5px_hsl(38_95%_56%/0.7)] transition-all duration-400">
                   <Shield className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <div className="absolute inset-0 rounded-xl bg-gradient-primary opacity-50 blur-lg group-hover:opacity-80 transition-opacity duration-300" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-warm opacity-40 blur-xl group-hover:opacity-70 transition-opacity duration-400" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-foreground">InsureAI</span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Smart Coverage</span>
+                <span className="text-lg font-bold text-foreground font-display">InsureAI</span>
+                <span className="text-[10px] text-primary/80 uppercase tracking-widest font-medium">भारत</span>
               </div>
             </Link>
 

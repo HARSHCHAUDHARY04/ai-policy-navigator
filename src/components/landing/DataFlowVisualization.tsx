@@ -20,21 +20,21 @@ export const DataFlowVisualization = () => {
       >
         <div className="relative">
           {/* Outer Ring */}
-          <div className="w-40 h-40 rounded-full border border-primary/20 animate-rotate-slow" />
+          <div className="w-40 h-40 rounded-full border border-primary/30 animate-rotate-slow" />
           
           {/* Middle Ring */}
           <div 
-            className="absolute inset-4 rounded-full border border-accent/30"
+            className="absolute inset-4 rounded-full border border-accent/40"
             style={{ animation: "rotate-slow 25s linear infinite reverse" }}
           />
           
           {/* Core */}
-          <div className="absolute inset-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
+          <div className="absolute inset-8 rounded-full bg-gradient-warm flex items-center justify-center shadow-glow">
             <Brain className="w-10 h-10 text-primary-foreground" />
           </div>
           
           {/* Glow Effect */}
-          <div className="absolute inset-8 rounded-full bg-gradient-primary opacity-40 blur-2xl" />
+          <div className="absolute inset-8 rounded-full bg-gradient-warm opacity-50 blur-2xl" />
         </div>
       </motion.div>
 
@@ -58,9 +58,9 @@ export const DataFlowVisualization = () => {
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400">
         <defs>
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="hsl(186 100% 50% / 0)" />
-            <stop offset="50%" stopColor="hsl(186 100% 50% / 0.5)" />
-            <stop offset="100%" stopColor="hsl(186 100% 50% / 0)" />
+            <stop offset="0%" stopColor="hsl(38 95% 56% / 0)" />
+            <stop offset="50%" stopColor="hsl(38 95% 56% / 0.6)" />
+            <stop offset="100%" stopColor="hsl(38 95% 56% / 0)" />
           </linearGradient>
         </defs>
         
@@ -73,7 +73,7 @@ export const DataFlowVisualization = () => {
             x2="200"
             y2="200"
             stroke="url(#lineGradient)"
-            strokeWidth="1"
+            strokeWidth="1.5"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
             transition={{ duration: 1.5, delay: 0.5 + i * 0.2, repeat: Infinity, repeatType: "loop" }}
@@ -96,11 +96,11 @@ export const DataFlowVisualization = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: step.delay + 0.8 }}
-            className="absolute glass-card p-4 w-32"
+            className="absolute glass-card p-4 w-32 hover-lift"
             style={positions[i] as any}
           >
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-warm flex items-center justify-center shadow-glow">
                 <step.icon className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="text-xs font-medium text-foreground">{step.label}</span>

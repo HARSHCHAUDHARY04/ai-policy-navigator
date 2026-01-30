@@ -153,8 +153,8 @@ const RiskDashboard = () => {
                     />
                     <defs>
                       <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(186 100% 50%)" />
-                        <stop offset="100%" stopColor="hsl(256 80% 60%)" />
+                        <stop offset="0%" stopColor="hsl(38 95% 56%)" />
+                        <stop offset="100%" stopColor="hsl(15 90% 60%)" />
                       </linearGradient>
                     </defs>
                   </svg>

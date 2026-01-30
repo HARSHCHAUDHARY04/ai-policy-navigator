@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        sans: ["'DM Sans'", "system-ui", "sans-serif"],
+        display: ["'Space Grotesk'", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -30,6 +31,10 @@ export default {
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+        },
+        tertiary: {
+          DEFAULT: "hsl(var(--tertiary))",
+          glow: "hsl(var(--tertiary-glow))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -82,15 +87,20 @@ export default {
       },
       boxShadow: {
         glow: "var(--shadow-glow)",
+        "glow-accent": "var(--shadow-accent)",
         card: "var(--shadow-card)",
         elevated: "var(--shadow-elevated)",
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
+        "gradient-warm": "var(--gradient-warm)",
         "gradient-hero": "var(--gradient-hero)",
         "gradient-card": "var(--gradient-card)",
         "gradient-glow": "var(--gradient-glow)",
         "gradient-mesh": "var(--gradient-mesh)",
+      },
+      transitionDuration: {
+        "400": "400ms",
       },
       keyframes: {
         "accordion-down": {
@@ -101,14 +111,15 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "float": {
-          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
-          "33%": { transform: "translateY(-20px) rotate(1deg)" },
-          "66%": { transform: "translateY(10px) rotate(-1deg)" },
+        "float-orb": {
+          "0%, 100%": { transform: "translateY(0) translateX(0)" },
+          "25%": { transform: "translateY(-30px) translateX(15px)" },
+          "50%": { transform: "translateY(10px) translateX(-10px)" },
+          "75%": { transform: "translateY(-15px) translateX(-20px)" },
         },
         "pulse-glow": {
-          "0%, 100%": { opacity: "0.4" },
-          "50%": { opacity: "1" },
+          "0%, 100%": { opacity: "0.5", boxShadow: "0 0 20px -5px hsl(38 95% 56% / 0.3)" },
+          "50%": { opacity: "1", boxShadow: "0 0 40px -5px hsl(38 95% 56% / 0.5)" },
         },
         "slide-up": {
           from: { opacity: "0", transform: "translateY(40px)" },
@@ -126,9 +137,13 @@ export default {
           from: { opacity: "0", transform: "scale(0.9)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 20px -5px hsl(186 100% 50% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px -5px hsl(186 100% 50% / 0.6)" },
+          "0%, 100%": { boxShadow: "0 0 25px -5px hsl(38 95% 56% / 0.3)" },
+          "50%": { boxShadow: "0 0 50px -5px hsl(38 95% 56% / 0.6)" },
         },
         "data-flow": {
           "0%": { transform: "translateX(-100%)", opacity: "0" },
@@ -143,14 +158,15 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "float": "float 6s ease-in-out infinite",
-        "float-slow": "float 10s ease-in-out infinite",
+        "float": "float-orb 8s ease-in-out infinite",
+        "float-slow": "float-orb 12s ease-in-out infinite",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
         "slide-up": "slide-up 0.6s ease-out forwards",
         "slide-down": "slide-down 0.5s ease-out forwards",
         "slide-in-right": "slide-in-right 0.6s ease-out forwards",
         "scale-in": "scale-in 0.5s ease-out forwards",
-        "glow-pulse": "glow-pulse 2s ease-in-out infinite alternate",
+        "glow-pulse": "glow-pulse 2.5s ease-in-out infinite alternate",
+        "shimmer": "shimmer 2.5s linear infinite",
         "data-flow": "data-flow 3s ease-in-out infinite",
         "rotate-slow": "rotate-slow 30s linear infinite",
       },

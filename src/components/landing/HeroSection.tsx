@@ -9,20 +9,20 @@ export const HeroSection = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Gradient Orbs */}
-        <div className="orb orb-primary w-[600px] h-[600px] -top-40 -left-40 animate-float-slow" />
+        {/* Gradient Orbs - warm colors */}
+        <div className="orb orb-primary w-[700px] h-[700px] -top-40 -left-40 animate-float-slow" />
         <div className="orb orb-accent w-[500px] h-[500px] top-1/2 -right-40 animate-float" />
-        <div className="orb orb-primary w-[300px] h-[300px] bottom-20 left-1/4 animate-float-slow" style={{ animationDelay: "2s" }} />
+        <div className="orb orb-coral w-[400px] h-[400px] bottom-20 left-1/4 animate-float-slow" style={{ animationDelay: "2s" }} />
         
-        {/* Grid Pattern */}
+        {/* Geometric Grid Pattern */}
         <div 
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage: `
-              linear-gradient(hsl(186 100% 50% / 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(186 100% 50% / 0.3) 1px, transparent 1px)
+              linear-gradient(hsl(38 95% 56% / 0.4) 1px, transparent 1px),
+              linear-gradient(90deg, hsl(38 95% 56% / 0.4) 1px, transparent 1px)
             `,
-            backgroundSize: "100px 100px",
+            backgroundSize: "80px 80px",
           }}
         />
       </div>
@@ -50,7 +50,7 @@ export const HeroSection = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="space-y-4"
             >
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight font-display">
                 <span className="text-foreground">Insurance that</span>
                 <br />
                 <span className="text-gradient">understands you</span>
