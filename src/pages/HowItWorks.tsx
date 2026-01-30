@@ -107,10 +107,10 @@ const StepCard = ({ step, index, isActive, onClick }: {
           {/* Icon */}
           <div className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center ${
             step.color === "primary" 
-              ? "bg-gradient-to-br from-primary to-accent shadow-glow"
+              ? "bg-gradient-warm shadow-glow"
               : step.color === "accent"
-              ? "bg-gradient-to-br from-accent to-primary shadow-[0_0_60px_-15px_hsl(256_80%_60%/0.4)]"
-              : "bg-gradient-to-br from-success to-primary shadow-[0_0_60px_-15px_hsl(160_84%_39%/0.4)]"
+              ? "bg-gradient-to-br from-tertiary to-accent shadow-glow-accent"
+              : "bg-gradient-to-br from-success to-primary shadow-glow"
           }`}>
             <step.icon className="w-8 h-8 text-white" />
           </div>
