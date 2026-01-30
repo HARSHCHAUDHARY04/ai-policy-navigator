@@ -116,10 +116,10 @@ export const Footer = () => {
         {/* Bottom */}
         <div className="mt-16 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 InsureAI. All rights reserved.
+            © 2024 InsureAI India. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
-            Made with AI • Powered by Trust
+            Made in India 🇮🇳 • IRDAI Registered
           </p>
         </div>
       </div>

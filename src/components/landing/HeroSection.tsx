@@ -73,7 +73,7 @@ export const HeroSection = () => {
                 <div className="text-sm text-muted-foreground">Match Accuracy</div>
               </div>
               <div className="space-y-1">
-                <div className="text-3xl font-bold text-gradient">$2.4K</div>
+                <div className="text-3xl font-bold text-gradient">₹2L</div>
                 <div className="text-sm text-muted-foreground">Avg. Savings/Year</div>
               </div>
               <div className="space-y-1">
@@ -111,7 +111,7 @@ export const HeroSection = () => {
             >
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-primary" />
-                <span>SOC 2 Compliant</span>
+                <span>IRDAI Compliant</span>
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />

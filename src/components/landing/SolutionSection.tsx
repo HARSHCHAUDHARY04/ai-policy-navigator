@@ -20,7 +20,7 @@ const solutions = [
     icon: TrendingDown,
     title: "Cost Optimization",
     description: "We find savings you didn't know existed by identifying overlapping coverage and unnecessary add-ons.",
-    benefits: ["Average $2.4K savings", "Bundle optimization", "Premium reduction tips"],
+    benefits: ["Average ₹2L savings", "Bundle optimization", "Premium reduction tips"],
   },
 ];
 
