@@ -10,6 +10,8 @@ import RiskDashboard from "./pages/RiskDashboard";
 import PolicyRecommendations from "./pages/PolicyRecommendations";
 import PrivacyPage from "./pages/PrivacyPage";
 import AdminPage from "./pages/AdminPage";
+import CompareInsurance from "./pages/CompareInsurance";
+import InsuranceProviders from "./pages/InsuranceProviders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/recommendations" element={<PolicyRecommendations />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/compare" element={<CompareInsurance />} />
+          <Route path="/providers" element={<InsuranceProviders />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
