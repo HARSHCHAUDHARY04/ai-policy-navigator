@@ -7,8 +7,8 @@ import { Menu, X, Shield, ChevronRight } from "lucide-react";
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "How It Works", path: "/how-it-works" },
-  { name: "Get Started", path: "/profile" },
-  { name: "Privacy", path: "/privacy" },
+  { name: "Compare", path: "/compare" },
+  { name: "Providers", path: "/providers" },
 ];
 
 export const Navbar = () => {
@@ -34,25 +34,22 @@ export const Navbar = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? "bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-elevated"
+            ? "bg-background/95 backdrop-blur-md border-b border-border shadow-card"
             : "bg-transparent"
         }`}
       >
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="w-11 h-11 rounded-xl bg-gradient-warm flex items-center justify-center shadow-glow group-hover:shadow-[0_0_50px_-5px_hsl(38_95%_56%/0.7)] transition-all duration-400">
-                  <Shield className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div className="absolute inset-0 rounded-xl bg-gradient-warm opacity-40 blur-xl group-hover:opacity-70 transition-opacity duration-400" />
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center group-hover:shadow-glow transition-shadow">
+                <Shield className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-foreground font-display">InsureAI</span>
-                <span className="text-[10px] text-primary/80 uppercase tracking-widest font-medium">भारत</span>
+                <span className="text-[10px] text-primary uppercase tracking-widest font-medium">भारत</span>
               </div>
             </Link>
 
@@ -82,14 +79,9 @@ export const Navbar = () => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Link to="/admin">
-                <Button variant="ghost" size="sm">
-                  Admin
-                </Button>
-              </Link>
               <Link to="/profile">
-                <Button variant="default" size="sm" className="group">
-                  Get Your Policy
+                <Button size="sm" className="group">
+                  Get Started
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -98,7 +90,7 @@ export const Navbar = () => {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg bg-secondary/50 text-foreground"
+              className="md:hidden p-2 rounded-lg bg-secondary text-foreground"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -114,9 +106,9 @@ export const Navbar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-20 z-40 md:hidden"
+            className="fixed inset-x-0 top-16 z-40 md:hidden"
           >
-            <div className="bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-elevated">
+            <div className="bg-background/98 backdrop-blur-md border-b border-border shadow-card">
               <div className="container mx-auto px-6 py-6 space-y-4">
                 {navLinks.map((link, index) => (
                   <motion.div
@@ -130,7 +122,7 @@ export const Navbar = () => {
                       className={`block px-4 py-3 rounded-xl text-base font-medium transition-all ${
                         location.pathname === link.path
                           ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                       }`}
                     >
                       {link.name}
@@ -141,11 +133,11 @@ export const Navbar = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="pt-4 border-t border-border/50"
+                  className="pt-4 border-t border-border"
                 >
                   <Link to="/profile" className="block">
-                    <Button variant="hero" className="w-full">
-                      Get Your Policy
+                    <Button className="w-full">
+                      Get Started
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </Link>

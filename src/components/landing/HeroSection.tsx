@@ -1,139 +1,96 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Sparkles, TrendingUp, Shield, Brain } from "lucide-react";
-import { DataFlowVisualization } from "./DataFlowVisualization";
+import { ChevronRight, Shield, TrendingUp, Users } from "lucide-react";
 
 export const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Background Effects */}
+    <section className="relative min-h-[90vh] flex items-center justify-center pt-20">
+      {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Gradient Orbs - warm colors */}
-        <div className="orb orb-primary w-[700px] h-[700px] -top-40 -left-40 animate-float-slow" />
-        <div className="orb orb-accent w-[500px] h-[500px] top-1/2 -right-40 animate-float" />
-        <div className="orb orb-coral w-[400px] h-[400px] bottom-20 left-1/4 animate-float-slow" style={{ animationDelay: "2s" }} />
-        
-        {/* Geometric Grid Pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              linear-gradient(hsl(38 95% 56% / 0.4) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(38 95% 56% / 0.4) 1px, transparent 1px)
-            `,
-            backgroundSize: "80px 80px",
-          }}
-        />
+        <div className="orb orb-primary w-[500px] h-[500px] -top-20 -right-20 animate-float-slow" />
+        <div className="orb orb-accent w-[400px] h-[400px] bottom-20 -left-20 animate-float" />
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left Content */}
-          <div className="space-y-8">
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">AI-Powered Insurance</span>
-              </div>
-            </motion.div>
-
-            {/* Headline */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="space-y-4"
-            >
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight font-display">
-                <span className="text-foreground">Insurance that</span>
-                <br />
-                <span className="text-gradient">understands you</span>
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
-                Stop overpaying for generic coverage. Our AI analyzes your unique profile to 
-                recommend policies tailored to your actual needs and risk factors.
-              </p>
-            </motion.div>
-
-            {/* Stats Row */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-wrap gap-8"
-            >
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-gradient">94%</div>
-                <div className="text-sm text-muted-foreground">Match Accuracy</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-gradient">₹2L</div>
-                <div className="text-sm text-muted-foreground">Avg. Savings/Year</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-gradient">48hrs</div>
-                <div className="text-sm text-muted-foreground">Quick Approval</div>
-              </div>
-            </motion.div>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-wrap gap-4"
-            >
-              <Link to="/profile">
-                <Button variant="hero" size="xl">
-                  Analyze My Profile
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link to="/how-it-works">
-                <Button variant="heroOutline" size="xl">
-                  See How It Works
-                </Button>
-              </Link>
-            </motion.div>
-
-            {/* Trust Indicators */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex items-center gap-6 text-sm text-muted-foreground"
-            >
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-primary" />
-                <span>IRDAI Compliant</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <span>50K+ Policies Matched</span>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Right Content - Data Visualization */}
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative hidden lg:block"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <DataFlowVisualization />
+            <span className="badge-premium">
+              <Shield className="w-4 h-4" />
+              IRDAI Compliant
+            </span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight"
+          >
+            Compare & Choose the{" "}
+            <span className="text-gradient">Best Insurance</span>
+            <br />for Your Needs
+          </motion.h1>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto"
+          >
+            AI-powered recommendations from India's top insurance providers. 
+            Save up to ₹2 Lakhs annually with personalized policies.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Link to="/profile">
+              <Button variant="hero" size="xl">
+                Get Personalized Quote
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to="/compare">
+              <Button variant="heroOutline" size="xl">
+                Compare Policies
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Trust Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="flex flex-wrap justify-center gap-8 pt-8"
+          >
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="w-5 h-5 text-primary" />
+              <span className="text-sm">50,000+ Happy Customers</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <span className="text-sm">₹500 Cr+ Claims Settled</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Shield className="w-5 h-5 text-primary" />
+              <span className="text-sm">20+ Insurance Partners</span>
+            </div>
           </motion.div>
         </div>
       </div>
-
-      {/* Bottom Gradient Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 };
