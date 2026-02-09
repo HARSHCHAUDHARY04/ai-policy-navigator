@@ -12,6 +12,9 @@ import PrivacyPage from "./pages/PrivacyPage";
 import AdminPage from "./pages/AdminPage";
 import CompareInsurance from "./pages/CompareInsurance";
 import InsuranceProviders from "./pages/InsuranceProviders";
+import PremiumCalculator from "./pages/PremiumCalculator";
+import InsuranceQuiz from "./pages/InsuranceQuiz";
+import ClaimsGuide from "./pages/ClaimsGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +35,9 @@ const App = () => (
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/compare" element={<CompareInsurance />} />
           <Route path="/providers" element={<InsuranceProviders />} />
+          <Route path="/calculator" element={<PremiumCalculator />} />
+          <Route path="/quiz" element={<InsuranceQuiz />} />
+          <Route path="/claims-guide" element={<ClaimsGuide />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
