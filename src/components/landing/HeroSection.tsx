@@ -1,7 +1,23 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Shield, TrendingUp, Users } from "lucide-react";
+import { ChevronRight, Shield, TrendingUp, Users, Heart, Calculator, FileText, Umbrella } from "lucide-react";
+
+const FloatingIcon = ({ icon: Icon, className, delay = 0 }: { icon: React.ElementType; className: string; delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay, duration: 0.5, type: "spring" }}
+    className={`absolute hidden md:flex items-center justify-center w-14 h-14 rounded-2xl glass-card shadow-card ${className}`}
+  >
+    <motion.div
+      animate={{ y: [0, -8, 0] }}
+      transition={{ duration: 3 + delay, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <Icon className="w-6 h-6 text-primary" />
+    </motion.div>
+  </motion.div>
+);
 
 export const HeroSection = () => {
   return (
@@ -11,6 +27,13 @@ export const HeroSection = () => {
         <div className="orb orb-primary w-[500px] h-[500px] -top-20 -right-20 animate-float-slow" />
         <div className="orb orb-accent w-[400px] h-[400px] bottom-20 -left-20 animate-float" />
       </div>
+
+      {/* Floating Animated Icons */}
+      <FloatingIcon icon={Heart} className="top-[18%] left-[8%]" delay={0.6} />
+      <FloatingIcon icon={Shield} className="top-[25%] right-[10%]" delay={0.8} />
+      <FloatingIcon icon={Calculator} className="bottom-[30%] left-[5%]" delay={1.0} />
+      <FloatingIcon icon={FileText} className="bottom-[22%] right-[7%]" delay={1.2} />
+      <FloatingIcon icon={Umbrella} className="top-[45%] left-[15%]" delay={1.4} />
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-8">

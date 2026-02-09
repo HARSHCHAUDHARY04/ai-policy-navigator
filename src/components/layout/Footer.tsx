@@ -16,18 +16,13 @@ export const Footer = () => {
 
           {/* Links */}
           <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-            <Link to="/how-it-works" className="hover:text-foreground transition-colors">
-              How It Works
-            </Link>
-            <Link to="/compare" className="hover:text-foreground transition-colors">
-              Compare
-            </Link>
-            <Link to="/providers" className="hover:text-foreground transition-colors">
-              Providers
-            </Link>
-            <Link to="/privacy" className="hover:text-foreground transition-colors">
-              Privacy
-            </Link>
+            <Link to="/how-it-works" className="hover:text-foreground transition-colors">How It Works</Link>
+            <Link to="/compare" className="hover:text-foreground transition-colors">Compare</Link>
+            <Link to="/calculator" className="hover:text-foreground transition-colors">Calculator</Link>
+            <Link to="/quiz" className="hover:text-foreground transition-colors">Quiz</Link>
+            <Link to="/claims-guide" className="hover:text-foreground transition-colors">Claims Guide</Link>
+            <Link to="/providers" className="hover:text-foreground transition-colors">Providers</Link>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
           </div>
 
           {/* Copyright */}
