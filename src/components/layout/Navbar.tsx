@@ -47,10 +47,7 @@ export const Navbar = () => {
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center group-hover:shadow-glow transition-shadow">
                 <Shield className="w-5 h-5 text-primary-foreground" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-foreground font-display">InsureAI</span>
-                <span className="text-[10px] text-primary uppercase tracking-widest font-medium">भारत</span>
-              </div>
+              <span className="text-lg font-bold text-foreground font-display">InsureAI</span>
             </Link>
 
             {/* Desktop Navigation */}
