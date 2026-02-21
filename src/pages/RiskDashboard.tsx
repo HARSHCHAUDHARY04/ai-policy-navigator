@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { 
-  Shield, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  Heart, 
-  Home, 
-  Car, 
+import {
+  Shield,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle,
+  Heart,
+  Home,
+  Car,
   Briefcase,
   ChevronRight,
   Info
@@ -16,69 +17,70 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-// Mock risk data - in a real app, this would come from the backend
-const riskData = {
-  overallScore: 72,
-  factors: [
-    {
-      id: "health",
-      name: "Health Risk",
-      icon: Heart,
-      score: 68,
-      status: "medium",
-      description: "Moderate risk based on lifestyle factors",
-      insights: [
-        { positive: true, text: "Regular exercise routine" },
-        { positive: true, text: "Non-smoker status" },
-        { positive: false, text: "Pre-existing condition: Hypertension" },
-      ],
-    },
-    {
-      id: "property",
-      name: "Property Risk",
-      icon: Home,
-      score: 82,
-      status: "low",
-      description: "Well-protected property with security features",
-      insights: [
-        { positive: true, text: "Security system installed" },
-        { positive: true, text: "Located in low-crime area" },
-        { positive: true, text: "Recently updated electrical" },
-      ],
-    },
-    {
-      id: "vehicle",
-      name: "Vehicle Risk",
-      icon: Car,
-      score: 58,
-      status: "high",
-      description: "Higher risk due to vehicle age and mileage",
-      insights: [
-        { positive: false, text: "Vehicle age: 6-10 years" },
-        { positive: false, text: "High annual mileage" },
-        { positive: true, text: "Clean driving record" },
-      ],
-    },
-    {
-      id: "employment",
-      name: "Income Stability",
-      icon: Briefcase,
-      score: 88,
-      status: "low",
-      description: "Stable employment with good income protection",
-      insights: [
-        { positive: true, text: "Full-time employment" },
-        { positive: true, text: "Low-risk industry" },
-        { positive: true, text: "Stable income history" },
-      ],
-    },
-  ],
-  recommendations: [
-    "Consider increasing health coverage for pre-existing conditions",
-    "Your property coverage is well-optimized",
-    "Comprehensive auto insurance recommended for older vehicle",
-    "Disability insurance could provide additional income protection",
-  ],
+// Basic logic to generate risk data from user profile
+const generateRiskData = (user: any) => {
+  if (!user) return null;
+
+  const healthScore = user.smoker === 'Never' ? 85 : 60;
+  const propertyScore = user.homeOwnership === 'Own' ? 85 : 70;
+  const vehicleScore = user.vehicleAge?.includes('New') ? 90 : 65;
+  const employmentScore = user.employmentStatus === 'Employed full-time' ? 90 : 75;
+
+  return {
+    overallScore: Math.round((healthScore + propertyScore + vehicleScore + employmentScore) / 4),
+    factors: [
+      {
+        id: "health",
+        name: "Health Risk",
+        icon: Heart,
+        score: healthScore,
+        status: healthScore >= 80 ? "low" : "medium",
+        description: `Risk analysis for ${user.firstName}`,
+        insights: [
+          { positive: user.smoker === 'Never', text: user.smoker === 'Never' ? "Non-smoker status" : "Current/former smoker" },
+          { positive: true, text: `Exercise frequency: ${user.exerciseFrequency}` },
+        ],
+      },
+      {
+        id: "property",
+        name: "Property Risk",
+        icon: Home,
+        score: propertyScore,
+        status: propertyScore >= 80 ? "low" : "medium",
+        description: `${user.propertyType || 'Home'} protection status`,
+        insights: [
+          { positive: true, text: `Ownership: ${user.homeOwnership}` },
+        ],
+      },
+      {
+        id: "vehicle",
+        name: "Vehicle Risk",
+        icon: Car,
+        score: vehicleScore,
+        status: vehicleScore >= 80 ? "low" : "medium",
+        description: "Vehicle protection analysis",
+        insights: [
+          { positive: true, text: `Vehicle Age: ${user.vehicleAge || 'N/A'}` },
+        ],
+      },
+      {
+        id: "employment",
+        name: "Income Stability",
+        icon: Briefcase,
+        score: employmentScore,
+        status: employmentScore >= 80 ? "low" : "medium",
+        description: "Career & income security",
+        insights: [
+          { positive: true, text: user.employmentStatus },
+        ],
+      },
+    ],
+    recommendations: [
+      healthScore < 80 ? "Consider increasing health coverage" : "Your health coverage is well-optimized",
+      "Check our new life insurance policies for family protection",
+      "Update your property insurance value annually",
+    ],
+  };
 };
 
 const getScoreColor = (score: number) => {
@@ -97,10 +99,38 @@ const getStatusBadge = (status: string) => {
 };
 
 const RiskDashboard = () => {
+  const userId = localStorage.getItem("userId");
+
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      // In a real app, we'd have a GET /api/users/:id endpoint
+      // For now, we'll just fetch all and find ours or return null
+      const response = await fetch('http://localhost:5000/api/users');
+      const users = await response.json();
+      return users.find((u: any) => u._id === userId) || users[users.length - 1]; // fallback to last user
+    },
+    enabled: !!userId
+  });
+
+  const riskData = generateRiskData(user) || {
+    overallScore: 0,
+    factors: [],
+    recommendations: ["Complete your profile to see risk analysis"]
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="pt-32 pb-20">
         <div className="container mx-auto px-6">
           {/* Header */}
@@ -168,7 +198,7 @@ const RiskDashboard = () => {
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="text-2xl font-bold mb-2">Good Protection Level</h2>
                   <p className="text-muted-foreground mb-6">
-                    Your overall risk profile shows room for improvement in a few areas. 
+                    Your overall risk profile shows room for improvement in a few areas.
                     Our AI has identified specific recommendations to optimize your coverage.
                   </p>
                   <div className="flex flex-wrap gap-4">
@@ -221,8 +251,8 @@ const RiskDashboard = () => {
 
                   {/* Progress Bar */}
                   <div className="progress-premium mb-4">
-                    <div 
-                      className="progress-premium-fill" 
+                    <div
+                      className="progress-premium-fill"
                       style={{ width: `${factor.score}%` }}
                     />
                   </div>

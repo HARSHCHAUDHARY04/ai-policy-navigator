@@ -3,13 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { 
-  ChevronRight, 
-  ChevronLeft, 
-  User, 
-  Heart, 
-  Home, 
-  Car, 
+import {
+  ChevronRight,
+  ChevronLeft,
+  User,
+  Heart,
+  Home,
+  Car,
   Briefcase,
   CheckCircle,
   Sparkles
@@ -34,25 +34,25 @@ type FormData = {
   gender: string;
   maritalStatus: string;
   dependents: string;
-  
+
   // Health
   smoker: string;
   exerciseFrequency: string;
   preExistingConditions: string[];
   healthGoal: string;
-  
+
   // Property
   homeOwnership: string;
   propertyType: string;
   propertyValue: string;
   securityFeatures: string[];
-  
+
   // Vehicles
   hasVehicle: string;
   vehicleType: string;
   vehicleAge: string;
   annualMileage: string;
-  
+
   // Employment
   employmentStatus: string;
   occupation: string;
@@ -106,13 +106,36 @@ const CustomerProfile = () => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < steps.length - 1) {
       setDirection(1);
       setCurrentStep((prev) => prev + 1);
     } else {
-      // Submit form
-      navigate("/dashboard");
+      // Submit form to backend
+      try {
+        const response = await fetch("http://localhost:5000/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to save profile");
+        }
+
+        const data = await response.json();
+        console.log("Profile saved:", data);
+
+        // Save user ID to localStorage for later use in recommendations
+        localStorage.setItem("userId", data._id);
+
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("Error saving profile:", error);
+        alert("Failed to save profile. Please try again.");
+      }
     }
   };
 
@@ -143,7 +166,7 @@ const CustomerProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="pt-32 pb-20">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto">
@@ -184,17 +207,15 @@ const CustomerProfile = () => {
                     setDirection(index > currentStep ? 1 : -1);
                     setCurrentStep(index);
                   }}
-                  className={`flex flex-col items-center gap-2 transition-all duration-300 ${
-                    index <= currentStep ? "opacity-100" : "opacity-40"
-                  }`}
+                  className={`flex flex-col items-center gap-2 transition-all duration-300 ${index <= currentStep ? "opacity-100" : "opacity-40"
+                    }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                    index === currentStep
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${index === currentStep
                       ? "bg-gradient-to-r from-primary to-accent shadow-glow"
                       : index < currentStep
-                      ? "bg-success"
-                      : "bg-secondary"
-                  }`}>
+                        ? "bg-success"
+                        : "bg-secondary"
+                    }`}>
                     {index < currentStep ? (
                       <CheckCircle className="w-5 h-5 text-white" />
                     ) : (
@@ -222,7 +243,7 @@ const CustomerProfile = () => {
                   {currentStep === 0 && (
                     <div className="space-y-6">
                       <h2 className="text-2xl font-bold mb-6 text-gradient">Personal Information</h2>
-                      
+
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">First Name</label>
@@ -286,11 +307,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("gender", option)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                formData.gender === option
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.gender === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -306,11 +326,10 @@ const CustomerProfile = () => {
                               <button
                                 key={option}
                                 onClick={() => updateField("maritalStatus", option)}
-                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                  formData.maritalStatus === option
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${formData.maritalStatus === option
                                     ? "bg-primary text-primary-foreground"
                                     : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
+                                  }`}
                               >
                                 {option}
                               </button>
@@ -324,11 +343,10 @@ const CustomerProfile = () => {
                               <button
                                 key={option}
                                 onClick={() => updateField("dependents", option)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                  formData.dependents === option
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.dependents === option
                                     ? "bg-primary text-primary-foreground"
                                     : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
+                                  }`}
                               >
                                 {option}
                               </button>
@@ -351,11 +369,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("smoker", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                formData.smoker === option
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.smoker === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -370,11 +387,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("exerciseFrequency", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                formData.exerciseFrequency === option
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.exerciseFrequency === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -391,11 +407,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => toggleArrayField("preExistingConditions", option)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                formData.preExistingConditions.includes(option)
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.preExistingConditions.includes(option)
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -415,11 +430,10 @@ const CustomerProfile = () => {
                             <button
                               key={option.value}
                               onClick={() => updateField("healthGoal", option.value)}
-                              className={`p-4 rounded-xl text-left transition-all ${
-                                formData.healthGoal === option.value
+                              className={`p-4 rounded-xl text-left transition-all ${formData.healthGoal === option.value
                                   ? "bg-primary/20 border-2 border-primary"
                                   : "bg-secondary/30 border-2 border-transparent hover:bg-secondary/50"
-                              }`}
+                                }`}
                             >
                               <div className="font-medium text-foreground">{option.label}</div>
                               <div className="text-xs text-muted-foreground">{option.desc}</div>
@@ -442,11 +456,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("homeOwnership", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                formData.homeOwnership === option
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.homeOwnership === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -461,11 +474,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("propertyType", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                formData.propertyType === option
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.propertyType === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -493,11 +505,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => toggleArrayField("securityFeatures", option)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                formData.securityFeatures.includes(option)
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.securityFeatures.includes(option)
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -519,11 +530,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("hasVehicle", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                formData.hasVehicle === option
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.hasVehicle === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -540,11 +550,10 @@ const CustomerProfile = () => {
                                 <button
                                   key={option}
                                   onClick={() => updateField("vehicleType", option)}
-                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                    formData.vehicleType === option
+                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.vehicleType === option
                                       ? "bg-primary text-primary-foreground"
                                       : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                  }`}
+                                    }`}
                                 >
                                   {option}
                                 </button>
@@ -559,11 +568,10 @@ const CustomerProfile = () => {
                                 <button
                                   key={option}
                                   onClick={() => updateField("vehicleAge", option)}
-                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                    formData.vehicleAge === option
+                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.vehicleAge === option
                                       ? "bg-primary text-primary-foreground"
                                       : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                  }`}
+                                    }`}
                                 >
                                   {option}
                                 </button>
@@ -578,11 +586,10 @@ const CustomerProfile = () => {
                                 <button
                                   key={option}
                                   onClick={() => updateField("annualMileage", option)}
-                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                    formData.annualMileage === option
+                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.annualMileage === option
                                       ? "bg-primary text-primary-foreground"
                                       : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                  }`}
+                                    }`}
                                 >
                                   {option}
                                 </button>
@@ -606,11 +613,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("employmentStatus", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                formData.employmentStatus === option
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.employmentStatus === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -636,11 +642,10 @@ const CustomerProfile = () => {
                             <button
                               key={option}
                               onClick={() => updateField("annualIncome", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                                formData.annualIncome === option
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.annualIncome === option
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-secondary/50 text-foreground hover:bg-secondary"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -659,11 +664,10 @@ const CustomerProfile = () => {
                             <button
                               key={option.value}
                               onClick={() => updateField("industryRisk", option.value)}
-                              className={`p-4 rounded-xl text-center transition-all ${
-                                formData.industryRisk === option.value
+                              className={`p-4 rounded-xl text-center transition-all ${formData.industryRisk === option.value
                                   ? "bg-primary/20 border-2 border-primary"
                                   : "bg-secondary/30 border-2 border-transparent hover:bg-secondary/50"
-                              }`}
+                                }`}
                             >
                               <div className="font-medium text-foreground">{option.label}</div>
                               <div className="text-xs text-muted-foreground">{option.desc}</div>

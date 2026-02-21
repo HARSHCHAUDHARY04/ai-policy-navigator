@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { 
-  Shield, 
-  Star, 
-  ChevronRight, 
-  Check, 
-  X, 
-  Heart, 
-  Home, 
+import {
+  Shield,
+  Star,
+  ChevronRight,
+  Check,
+  X,
+  Heart,
+  Home,
   Car,
   HelpCircle,
   Sparkles,
@@ -140,14 +141,39 @@ const PolicyRecommendations = () => {
   const [selectedType, setSelectedType] = useState<PolicyType | "all">("all");
   const [expandedPolicy, setExpandedPolicy] = useState<string | null>(null);
 
-  const filteredPolicies = selectedType === "all" 
-    ? policies 
-    : policies.filter(p => p.type === selectedType);
+  const { data: policies = [], isLoading, error } = useQuery({
+    queryKey: ['policies', selectedType],
+    queryFn: async () => {
+      const response = await fetch(`http://localhost:5000/api/policies?type=${selectedType}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-destructive text-xl">Error loading policies. Please try again later.</div>
+      </div>
+    );
+  }
+
+  const filteredPolicies = policies;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="pt-32 pb-20">
         <div className="container mx-auto px-6">
           {/* Header */}
@@ -184,11 +210,10 @@ const PolicyRecommendations = () => {
               <button
                 key={tab.value}
                 onClick={() => setSelectedType(tab.value as PolicyType | "all")}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all ${
-                  selectedType === tab.value
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all ${selectedType === tab.value
                     ? "bg-primary text-primary-foreground shadow-glow"
                     : "bg-secondary/50 text-foreground hover:bg-secondary"
-                }`}
+                  }`}
               >
                 {tab.icon && <tab.icon className="w-4 h-4" />}
                 {tab.label}
@@ -259,8 +284,8 @@ const PolicyRecommendations = () => {
                         {/* Quick Features */}
                         <div className="flex flex-wrap gap-2 mb-4">
                           {policy.features.slice(0, 3).map((feature, i) => (
-                            <span 
-                              key={i} 
+                            <span
+                              key={i}
                               className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-success/10 text-success"
                             >
                               <Check className="w-3 h-3" />

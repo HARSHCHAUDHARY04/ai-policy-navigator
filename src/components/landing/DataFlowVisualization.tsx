@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { User, Brain, FileCheck, Shield, ArrowRight } from "lucide-react";
 
@@ -97,7 +98,7 @@ export const DataFlowVisualization = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: step.delay + 0.8 }}
             className="absolute glass-card p-4 w-32 hover-lift"
-            style={positions[i] as any}
+            style={positions[i] as React.CSSProperties}
           >
             <div className="flex flex-col items-center text-center gap-2">
               <div className="w-10 h-10 rounded-lg bg-gradient-warm flex items-center justify-center shadow-glow">

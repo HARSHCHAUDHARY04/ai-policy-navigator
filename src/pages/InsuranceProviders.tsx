@@ -1,42 +1,10 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, Shield, Heart, Car, Plane } from "lucide-react";
 
-const providers = {
-  health: [
-    { name: "Star Health", url: "https://www.starhealth.in", desc: "India's largest standalone health insurer" },
-    { name: "HDFC Ergo Health", url: "https://www.hdfcergo.com/health-insurance", desc: "Comprehensive health plans" },
-    { name: "ICICI Lombard", url: "https://www.icicilombard.com/health-insurance", desc: "Trusted health coverage" },
-    { name: "Max Bupa", url: "https://www.nivabupa.com", desc: "Premium health insurance" },
-    { name: "Care Health", url: "https://www.careinsurance.com", desc: "Affordable health plans" },
-    { name: "Bajaj Allianz Health", url: "https://www.bajajallianz.com/health-insurance.html", desc: "Wide hospital network" },
-  ],
-  life: [
-    { name: "LIC of India", url: "https://licindia.in", desc: "Government-backed security" },
-    { name: "HDFC Life", url: "https://www.hdfclife.com", desc: "Term & savings plans" },
-    { name: "ICICI Prudential", url: "https://www.iciciprulife.com", desc: "Flexible life coverage" },
-    { name: "SBI Life", url: "https://www.sbilife.co.in", desc: "Trusted life insurance" },
-    { name: "Max Life", url: "https://www.maxlifeinsurance.com", desc: "Premium life plans" },
-    { name: "Tata AIA", url: "https://www.tataaia.com", desc: "Life protection solutions" },
-  ],
-  motor: [
-    { name: "Bajaj Allianz Motor", url: "https://www.bajajallianz.com/motor-insurance.html", desc: "Comprehensive motor cover" },
-    { name: "TATA AIG Motor", url: "https://www.tataaig.com/motor-insurance", desc: "Quick claim settlement" },
-    { name: "New India Assurance", url: "https://www.newindia.co.in", desc: "Government insurer" },
-    { name: "Bharti AXA", url: "https://www.bharti-axagi.co.in/motor-insurance", desc: "Affordable premiums" },
-    { name: "HDFC Ergo Motor", url: "https://www.hdfcergo.com/motor-insurance", desc: "Wide garage network" },
-    { name: "ICICI Lombard Motor", url: "https://www.icicilombard.com/motor-insurance", desc: "Digital-first claims" },
-  ],
-  travel: [
-    { name: "TATA AIG Travel", url: "https://www.tataaig.com/travel-insurance", desc: "Global travel protection" },
-    { name: "Bajaj Allianz Travel", url: "https://www.bajajallianz.com/travel-insurance.html", desc: "Comprehensive travel plans" },
-    { name: "HDFC Ergo Travel", url: "https://www.hdfcergo.com/travel-insurance", desc: "International coverage" },
-    { name: "ICICI Lombard Travel", url: "https://www.icicilombard.com/travel-insurance", desc: "Medical emergency cover" },
-    { name: "Care Travel", url: "https://www.careinsurance.com/travel-insurance", desc: "Budget-friendly travel" },
-    { name: "Reliance Travel", url: "https://www.reliancegeneral.co.in/travel-insurance", desc: "Quick visa processing" },
-  ],
-};
+// Providers will be fetched from the API
 
 const categories = [
   { key: "health", label: "Health Insurance", icon: Heart, color: "text-red-500" },
@@ -46,6 +14,29 @@ const categories = [
 ];
 
 const InsuranceProviders = () => {
+  const { data: providersData = [], isLoading } = useQuery({
+    queryKey: ['providers'],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:5000/api/providers');
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    },
+  });
+
+  const providers = {
+    health: providersData.filter((p: any) => p.category === 'health'),
+    life: providersData.filter((p: any) => p.category === 'life'),
+    motor: providersData.filter((p: any) => p.category === 'motor'),
+    travel: providersData.filter((p: any) => p.category === 'travel'),
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -78,7 +69,7 @@ const InsuranceProviders = () => {
                 <category.icon className={`w-6 h-6 ${category.color}`} />
                 <h2 className="text-2xl font-display font-semibold">{category.label}</h2>
               </div>
-              
+
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {providers[category.key as keyof typeof providers].map((provider, idx) => (
                   <a

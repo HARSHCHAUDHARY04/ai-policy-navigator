@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft, Sparkles, CheckCircle2 } from "lucide-react";
 
@@ -18,16 +18,39 @@ const questions: Question[] = [
   { question: "What matters most to you?", options: ["Lowest Premium", "Maximum Coverage", "Best Claim Ratio", "Network Hospitals"] },
 ];
 
-const recommendations = [
-  { name: "HDFC Ergo Optima Secure", provider: "HDFC Ergo", premium: "₹15,000/yr", coverage: "₹10 Lakh", match: 95 },
-  { name: "Star Health Companion", provider: "Star Health", premium: "₹12,500/yr", coverage: "₹10 Lakh", match: 88 },
-  { name: "Care Supreme", provider: "Care Health", premium: "₹13,500/yr", coverage: "₹10 Lakh", match: 82 },
-];
+// recommendations will be fetched from the API
 
 const InsuranceQuiz = () => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
+
+  const { data: policies = [], isLoading } = useQuery({
+    queryKey: ['policies'],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:5000/api/policies');
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    },
+    enabled: showResults
+  });
+
+  const getQuizRecommendations = () => {
+    // Basic filtering logic based on quiz answers
+    const category = answers[0]?.toLowerCase().includes("health") ? "health" :
+      answers[0]?.toLowerCase().includes("life") ? "life" : "health";
+
+    return policies
+      .filter((p: any) => p.type === category || p.type === 'health') // default to health if not sure
+      .slice(0, 3)
+      .map((p: any) => ({
+        ...p,
+        premium: `₹${(p.monthlyPremium * 12).toLocaleString('en-IN')}/yr`,
+        match: p.matchScore
+      }));
+  };
+
+  const recommendations = getQuizRecommendations();
 
   const selectAnswer = (answer: string) => {
     const newAnswers = [...answers];
