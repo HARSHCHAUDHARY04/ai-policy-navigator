@@ -11,7 +11,7 @@ export const Footer = () => {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Shield className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-display font-bold text-foreground">InsureAI</span>
+            <span className="font-display font-bold text-foreground">PolicyNav</span>
           </Link>
 
           {/* Links */}
@@ -27,7 +27,7 @@ export const Footer = () => {
 
           {/* Copyright */}
           <p className="text-sm text-muted-foreground">
-            © 2024 InsureAI India 🇮🇳
+            © 2025 PolicyNav India 🇮🇳
           </p>
         </div>
       </div>

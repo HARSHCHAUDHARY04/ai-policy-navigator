@@ -3,49 +3,47 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Index from "./pages/Index";
-import HowItWorks from "./pages/HowItWorks";
 import CustomerProfile from "./pages/CustomerProfile";
 import RiskDashboard from "./pages/RiskDashboard";
-import PolicyRecommendations from "./pages/PolicyRecommendations";
 import PrivacyPage from "./pages/PrivacyPage";
-import AdminPage from "./pages/AdminPage";
 import CompareInsurance from "./pages/CompareInsurance";
-import InsuranceProviders from "./pages/InsuranceProviders";
 import PremiumCalculator from "./pages/PremiumCalculator";
 import InsuranceQuiz from "./pages/InsuranceQuiz";
-import ClaimsGuide from "./pages/ClaimsGuide";
 import AIInsuranceSearch from "./pages/AIInsuranceSearch";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/profile" element={<CustomerProfile />} />
-          <Route path="/dashboard" element={<RiskDashboard />} />
-          <Route path="/recommendations" element={<PolicyRecommendations />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/compare" element={<CompareInsurance />} />
-          <Route path="/providers" element={<InsuranceProviders />} />
-          <Route path="/calculator" element={<PremiumCalculator />} />
-          <Route path="/quiz" element={<InsuranceQuiz />} />
-          <Route path="/claims-guide" element={<ClaimsGuide />} />
-          <Route path="/ai-search" element={<AIInsuranceSearch />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/profile" element={<CustomerProfile />} />
+            <Route path="/dashboard" element={<RiskDashboard />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/compare" element={<CompareInsurance />} />
+            <Route path="/calculator" element={<PremiumCalculator />} />
+            <Route path="/quiz" element={<InsuranceQuiz />} />
+            <Route path="/ai-search" element={<AIInsuranceSearch />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
 export default App;
+

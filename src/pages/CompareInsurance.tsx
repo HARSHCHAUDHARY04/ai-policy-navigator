@@ -116,7 +116,7 @@ const CompareInsurance = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-24 pb-16">
+      <main className="pt-32 pb-16">
         <div className="container mx-auto px-6">
           {/* Header */}
           <motion.div
@@ -178,7 +178,7 @@ const CompareInsurance = () => {
                 <CompareRow label="Waiting Period" values={selectedPolicies.map(p => `${p.waitingPeriod} days`)} />
                 <CompareRow label="Room Rent Limit" values={selectedPolicies.map(p => p.roomRent)} />
                 <CompareRow label="Pre-existing Wait" values={selectedPolicies.map(p => `${p.preExisting} years`)} />
-                
+
                 {/* Features */}
                 <tr>
                   <td className="p-4 text-muted-foreground font-medium border-t border-border">Key Features</td>
@@ -253,13 +253,13 @@ const CompareInsurance = () => {
   );
 };
 
-const CompareRow = ({ 
-  label, 
-  values, 
-  highlight = false 
-}: { 
-  label: string; 
-  values: string[]; 
+const CompareRow = ({
+  label,
+  values,
+  highlight = false
+}: {
+  label: string;
+  values: string[];
   highlight?: boolean;
 }) => (
   <tr className={highlight ? "bg-secondary/30" : ""}>

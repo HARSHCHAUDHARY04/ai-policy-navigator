@@ -36,11 +36,14 @@ interface Recommendation {
 }
 
 const questions: Question[] = [
-  { question: "What's your primary insurance need?", options: ["Health Protection", "Life Coverage", "Investment + Insurance", "Family Floater"] },
+  {
+    question: "What type of insurance do you need?",
+    options: ["Health Insurance", "Life / Term Insurance", "Vehicle Insurance", "Home & Property", "Travel Insurance", "Investment + Insurance"],
+  },
   { question: "What's your age group?", options: ["18-30", "31-45", "46-60", "60+"] },
   { question: "What's your monthly budget for insurance?", options: ["Under ₹1,000", "₹1,000-₹2,500", "₹2,500-₹5,000", "₹5,000+"] },
-  { question: "Do you have any pre-existing conditions?", options: ["None", "Diabetes", "Heart condition", "Other"] },
-  { question: "What matters most to you?", options: ["Lowest Premium", "Maximum Coverage", "Best Claim Ratio", "Network Hospitals"] },
+  { question: "Any relevant details about yourself?", options: ["No pre-existing conditions", "Have a pre-existing illness", "Have a vehicle", "Own a home"] },
+  { question: "What matters most to you?", options: ["Lowest Premium", "Maximum Coverage", "Best Claim Ratio", "Ease of Claims"] },
 ];
 
 const InsuranceQuiz = () => {
@@ -72,8 +75,8 @@ const InsuranceQuiz = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ answers }),
         });
-        if (!response.ok) throw new Error("Server error. Please try again.");
         const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Server error. Please try again.");
         setRecommendations(data.recommendations || []);
       } catch (err: any) {
         setError(err.message || "Something went wrong. Please try again.");
@@ -99,17 +102,17 @@ const InsuranceQuiz = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-24 pb-16">
+      <main className="pt-32 pb-16">
         <div className="container mx-auto px-6 max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">AI-Powered Recommender</span>
+              <span className="text-sm font-medium text-primary">Smart Policy Recommender</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
               Find Your <span className="text-gradient">Perfect Policy</span>
             </h1>
-            <p className="text-muted-foreground">Answer 5 quick questions — Gemini AI will curate policies just for you.</p>
+            <p className="text-muted-foreground">Answer 5 quick questions and we'll curate the best policies for you.</p>
           </motion.div>
 
           {!showResults ? (
@@ -125,7 +128,7 @@ const InsuranceQuiz = () => {
                 <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <p className="text-sm text-muted-foreground mb-2">Question {step + 1} of {questions.length}</p>
                   <h2 className="text-2xl font-bold text-foreground mb-6">{questions[step].question}</h2>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className={`grid gap-3 ${step === 0 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2"}`}>
                     {questions[step].options.map((option) => (
                       <button
                         key={option}
@@ -147,7 +150,7 @@ const InsuranceQuiz = () => {
                   <ChevronLeft className="w-4 h-4" /> Back
                 </Button>
                 <Button onClick={next} disabled={!answers[step]}>
-                  {step === questions.length - 1 ? "Get AI Recommendations" : "Next"} <ChevronRight className="w-4 h-4" />
+                  {step === questions.length - 1 ? "Get Recommendations" : "Next"} <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
             </motion.div>
@@ -162,7 +165,7 @@ const InsuranceQuiz = () => {
                   </div>
                   <h2 className="text-xl font-bold text-foreground">Gemini is analysing your profile…</h2>
                   <p className="text-sm text-muted-foreground text-center max-w-sm">
-                    Our AI is searching through hundreds of Indian insurance policies to find your best matches.
+                    Searching through hundreds of Indian insurance policies to find your best matches.
                   </p>
                 </div>
               )}
@@ -180,7 +183,7 @@ const InsuranceQuiz = () => {
                 <>
                   <div className="flex items-center gap-3 mb-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    <h2 className="text-2xl font-bold">Your AI-Curated Recommendations</h2>
+                    <h2 className="text-2xl font-bold">Your Personalised Recommendations</h2>
                   </div>
                   <p className="text-sm text-muted-foreground mb-6">Based on your profile, Gemini recommends these policies:</p>
 
@@ -271,7 +274,7 @@ const InsuranceQuiz = () => {
                               <div className="flex items-start gap-3">
                                 <Sparkles className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                                 <div>
-                                  <h4 className="font-semibold text-foreground mb-1">Gemini's Reasoning</h4>
+                                  <h4 className="font-semibold text-foreground mb-1">Why Recommended</h4>
                                   <p className="text-sm text-muted-foreground">{rec.whyRecommended}</p>
                                 </div>
                               </div>

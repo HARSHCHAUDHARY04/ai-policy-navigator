@@ -8,8 +8,8 @@ import { motion } from "framer-motion";
 
 const faqs = [
   {
-    question: "How does the AI recommendation engine work?",
-    answer: "Our AI analyzes several factors including your age, lifestyle, existing health conditions, and budget to match you with policies that provide the best coverage for your specific situation.",
+    question: "How does the policy recommendation work?",
+    answer: "PolicyNav analyzes factors like your age, lifestyle, existing health conditions, and budget to match you with plans that provide the best coverage for your specific situation.",
   },
   {
     question: "Is my personal data secure?",
@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     question: "Are there any hidden fees for using this platform?",
-    answer: "No, AI Policy Navigator is completely free for users. Our goal is to empower you with the information you need to make the best choice.",
+    answer: "No, PolicyNav is completely free for users. Our goal is to empower you with the information you need to make the best choice.",
   },
   {
     question: "How often should I review my insurance policies?",

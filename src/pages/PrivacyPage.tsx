@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { 
-  Shield, 
-  Lock, 
-  Eye, 
-  FileCheck, 
-  Server, 
+import {
+  Shield,
+  Lock,
+  Eye,
+  FileCheck,
+  Server,
   UserCheck,
   CheckCircle,
   Building
@@ -60,7 +60,7 @@ const dataUsage = [
     items: [
       "Generating personalized risk scores",
       "Matching you with optimal insurance policies",
-      "Improving our AI recommendation engine",
+      "Improving our recommendation engine",
       "Communicating important updates about your coverage",
     ],
   },
@@ -79,7 +79,7 @@ const PrivacyPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="pt-32 pb-20">
         <div className="container mx-auto px-6">
           {/* Header */}
@@ -96,7 +96,7 @@ const PrivacyPage = () => {
               Privacy & <span className="text-gradient">Security</span>
             </h1>
             <p className="text-xl text-muted-foreground">
-              We take your privacy seriously. Here's how we protect your data 
+              We take your privacy seriously. Here's how we protect your data
               and give you complete control over your information.
             </p>
           </motion.div>
@@ -109,7 +109,7 @@ const PrivacyPage = () => {
             className="flex flex-wrap justify-center gap-6 mb-20"
           >
             {["SOC 2 Certified", "GDPR Compliant", "HIPAA Compliant", "CCPA Compliant"].map((badge, index) => (
-              <div 
+              <div
                 key={badge}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 border border-border/50"
               >
@@ -204,7 +204,7 @@ const PrivacyPage = () => {
                   { icon: Lock, label: "Modify" },
                   { icon: Shield, label: "Delete" },
                 ].map((right) => (
-                  <div 
+                  <div
                     key={right.label}
                     className="p-4 rounded-xl bg-secondary/30 text-center"
                   >

@@ -164,396 +164,140 @@ const CustomerProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
       <Navbar />
 
-      <main className="pt-32 pb-20">
+      <main className="pt-32 pb-20 relative z-10">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             {/* Header */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center mb-12"
+              className="text-center mb-16"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Step {currentStep + 1} of {steps.length}</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-md">
+                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                <span className="text-sm font-bold tracking-wider uppercase text-primary/80">Profile Synthesis — Step {currentStep + 1} of {steps.length}</span>
               </div>
-              <h1 className="text-4xl font-bold mb-4">Build Your Profile</h1>
-              <p className="text-muted-foreground">
-                Help us understand your unique needs for personalized recommendations
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 tracking-tight">
+                Build Your <span className="text-gradient drop-shadow-[0_0_15px_hsl(152,80%,50%,0.3)]">Intelligence Profile</span>
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light">
+                Share a few details about yourself so we can calculate your personalised risk profile and find the best plans for you.
               </p>
             </motion.div>
 
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="progress-premium">
-                <motion.div
-                  className="progress-premium-fill"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-            </div>
-
-            {/* Step Indicators */}
-            <div className="flex justify-between mb-12">
-              {steps.map((step, index) => (
-                <button
-                  key={step.id}
-                  onClick={() => {
-                    setDirection(index > currentStep ? 1 : -1);
-                    setCurrentStep(index);
-                  }}
-                  className={`flex flex-col items-center gap-2 transition-all duration-300 ${index <= currentStep ? "opacity-100" : "opacity-40"
-                    }`}
-                >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${index === currentStep
-                      ? "bg-gradient-to-r from-primary to-accent shadow-glow"
-                      : index < currentStep
-                        ? "bg-success"
-                        : "bg-secondary"
-                    }`}>
-                    {index < currentStep ? (
-                      <CheckCircle className="w-5 h-5 text-white" />
-                    ) : (
-                      <step.icon className="w-5 h-5 text-white" />
-                    )}
+            <div className="grid lg:grid-cols-[1fr_280px] gap-12 items-start">
+              <div className="space-y-8">
+                {/* Progress Bar */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end mb-1">
+                    <span className="text-xs font-bold text-primary tracking-widest uppercase">Synchronization Progress</span>
+                    <span className="text-xl font-display font-bold text-white">{Math.round(progress)}%</span>
                   </div>
-                  <span className="text-xs font-medium hidden md:block">{step.title}</span>
-                </button>
-              ))}
-            </div>
+                  <div className="progress-premium h-2">
+                    <motion.div
+                      className="progress-premium-fill"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 0.8, ease: "circOut" }}
+                    />
+                  </div>
+                </div>
 
-            {/* Form Card */}
-            <div className="glass-card glow-border p-8 md:p-12 overflow-hidden">
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={currentStep}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* Step 1: Personal Info */}
-                  {currentStep === 0 && (
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-bold mb-6 text-gradient">Personal Information</h2>
-
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">First Name</label>
-                          <input
-                            type="text"
-                            value={formData.firstName}
-                            onChange={(e) => updateField("firstName", e.target.value)}
-                            className="input-premium"
-                            placeholder="Rahul"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">Last Name</label>
-                          <input
-                            type="text"
-                            value={formData.lastName}
-                            onChange={(e) => updateField("lastName", e.target.value)}
-                            className="input-premium"
-                            placeholder="Sharma"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">Email</label>
-                          <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => updateField("email", e.target.value)}
-                            className="input-premium"
-                            placeholder="rahul@example.com"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">Phone</label>
-                          <input
-                            type="tel"
-                            value={formData.phone}
-                            onChange={(e) => updateField("phone", e.target.value)}
-                            className="input-premium"
-                            placeholder="+91 98765 43210"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Date of Birth</label>
-                        <input
-                          type="date"
-                          value={formData.dateOfBirth}
-                          onChange={(e) => updateField("dateOfBirth", e.target.value)}
-                          className="input-premium"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Gender</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Male", "Female", "Non-binary", "Prefer not to say"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("gender", option)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.gender === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-3">Marital Status</label>
-                          <div className="flex flex-wrap gap-2">
-                            {["Single", "Married", "Divorced", "Widowed"].map((option) => (
-                              <button
-                                key={option}
-                                onClick={() => updateField("maritalStatus", option)}
-                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${formData.maritalStatus === option
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            ))}
+                {/* Form Card */}
+                <div className="glass-card glow-border p-8 md:p-10">
+                  <AnimatePresence mode="wait" custom={direction}>
+                    <motion.div
+                      key={currentStep}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                    >
+                      {/* Step 1: Personal Info */}
+                      {currentStep === 0 && (
+                        <div className="space-y-8">
+                          <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                              <User className="w-6 h-6 text-primary" />
+                            </div>
+                            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-wider text-glow">Personal Information</h2>
                           </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-3">Dependents</label>
-                          <div className="flex flex-wrap gap-2">
-                            {["0", "1", "2", "3", "4+"].map((option) => (
-                              <button
-                                key={option}
-                                onClick={() => updateField("dependents", option)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.dependents === option
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            ))}
+
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label className="label-premium">First Name</label>
+                              <input
+                                type="text"
+                                value={formData.firstName}
+                                onChange={(e) => updateField("firstName", e.target.value)}
+                                className="input-premium"
+                                placeholder="Enter first name"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="label-premium">Last Name</label>
+                              <input
+                                type="text"
+                                value={formData.lastName}
+                                onChange={(e) => updateField("lastName", e.target.value)}
+                                className="input-premium"
+                                placeholder="Enter last name"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Step 2: Health & Lifestyle */}
-                  {currentStep === 1 && (
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-bold mb-6 text-gradient">Health & Lifestyle</h2>
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label className="label-premium">Email Address</label>
+                              <input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => updateField("email", e.target.value)}
+                                className="input-premium"
+                                placeholder="name@domain.com"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="label-premium">Phone Number</label>
+                              <input
+                                type="tel"
+                                value={formData.phone}
+                                onChange={(e) => updateField("phone", e.target.value)}
+                                className="input-premium"
+                                placeholder="+91 XXXX XXX XXX"
+                              />
+                            </div>
+                          </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Do you smoke?</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Never", "Former smoker", "Occasionally", "Regularly"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("smoker", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.smoker === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                          <div className="space-y-2">
+                            <label className="label-premium">Date of Birth</label>
+                            <input
+                              type="date"
+                              value={formData.dateOfBirth}
+                              onChange={(e) => updateField("dateOfBirth", e.target.value)}
+                              className="input-premium"
+                            />
+                          </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Exercise Frequency</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Sedentary", "1-2x/week", "3-4x/week", "Daily"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("exerciseFrequency", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.exerciseFrequency === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">
-                          Pre-existing Conditions (select all that apply)
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {["None", "Diabetes", "Heart disease", "Hypertension", "Asthma", "Cancer history", "Other"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => toggleArrayField("preExistingConditions", option)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.preExistingConditions.includes(option)
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Health Goal Priority</label>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          {[
-                            { value: "prevention", label: "Preventive Care", desc: "Regular checkups & screenings" },
-                            { value: "coverage", label: "Maximum Coverage", desc: "Comprehensive protection" },
-                            { value: "budget", label: "Budget-Friendly", desc: "Essential coverage only" },
-                            { value: "family", label: "Family Focus", desc: "Coverage for all family members" },
-                          ].map((option) => (
-                            <button
-                              key={option.value}
-                              onClick={() => updateField("healthGoal", option.value)}
-                              className={`p-4 rounded-xl text-left transition-all ${formData.healthGoal === option.value
-                                  ? "bg-primary/20 border-2 border-primary"
-                                  : "bg-secondary/30 border-2 border-transparent hover:bg-secondary/50"
-                                }`}
-                            >
-                              <div className="font-medium text-foreground">{option.label}</div>
-                              <div className="text-xs text-muted-foreground">{option.desc}</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 3: Property */}
-                  {currentStep === 2 && (
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-bold mb-6 text-gradient">Property Details</h2>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Home Ownership</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Own", "Rent", "Live with family", "Other"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("homeOwnership", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.homeOwnership === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Property Type</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Independent House", "Flat/Apartment", "Villa", "Builder Floor", "N/A"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("propertyType", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.propertyType === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Estimated Property Value</label>
-                        <input
-                          type="text"
-                          value={formData.propertyValue}
-                          onChange={(e) => updateField("propertyValue", e.target.value)}
-                          className="input-premium"
-                          placeholder="₹75,00,000"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">
-                          Security Features (select all that apply)
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {["Alarm system", "Security cameras", "Smart locks", "Gated community", "Fire sprinklers", "None"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => toggleArrayField("securityFeatures", option)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.securityFeatures.includes(option)
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 4: Vehicles */}
-                  {currentStep === 3 && (
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-bold mb-6 text-gradient">Vehicle Information</h2>
-
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Do you own a vehicle?</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Yes", "No", "Multiple vehicles"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("hasVehicle", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.hasVehicle === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {formData.hasVehicle !== "No" && (
-                        <>
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">Primary Vehicle Type</label>
+                          <div className="space-y-4">
+                            <label className="label-premium">Gender Archetype</label>
                             <div className="flex flex-wrap gap-3">
-                              {["Hatchback", "Sedan", "SUV", "MUV", "Electric", "Two-Wheeler"].map((option) => (
+                              {["Male", "Female", "Non-binary", "Prefer not to say"].map((option) => (
                                 <button
                                   key={option}
-                                  onClick={() => updateField("vehicleType", option)}
-                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.vehicleType === option
-                                      ? "bg-primary text-primary-foreground"
-                                      : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                    }`}
+                                  onClick={() => updateField("gender", option)}
+                                  className={`btn-select-premium ${formData.gender === option ? "active" : ""}`}
                                 >
                                   {option}
                                 </button>
@@ -561,145 +305,432 @@ const CustomerProfile = () => {
                             </div>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">Vehicle Age</label>
-                            <div className="flex flex-wrap gap-3">
-                              {["New (0-2 years)", "Recent (3-5 years)", "Moderate (6-10 years)", "Older (10+ years)"].map((option) => (
-                                <button
-                                  key={option}
-                                  onClick={() => updateField("vehicleAge", option)}
-                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.vehicleAge === option
-                                      ? "bg-primary text-primary-foreground"
-                                      : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                    }`}
-                                >
-                                  {option}
-                                </button>
-                              ))}
+                          <div className="grid md:grid-cols-2 gap-8 pt-4">
+                            <div className="space-y-4">
+                              <label className="label-premium">Social Structure</label>
+                              <div className="flex flex-wrap gap-2">
+                                {["Single", "Married", "Divorced", "Widowed"].map((option) => (
+                                  <button
+                                    key={option}
+                                    onClick={() => updateField("maritalStatus", option)}
+                                    className={`btn-select-premium flex-1 min-w-[80px] ${formData.maritalStatus === option ? "active" : ""}`}
+                                  >
+                                    {option}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="space-y-4">
+                              <label className="label-premium">Biological Dependents</label>
+                              <div className="flex flex-wrap gap-2">
+                                {["0", "1", "2", "3", "4+"].map((option) => (
+                                  <button
+                                    key={option}
+                                    onClick={() => updateField("dependents", option)}
+                                    className={`btn-select-premium flex-1 ${formData.dependents === option ? "active" : ""}`}
+                                  >
+                                    {option}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                           </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">Annual Running (km)</label>
-                            <div className="flex flex-wrap gap-3">
-                              {["Under 5,000 km", "5,000 - 10,000 km", "10,000 - 20,000 km", "20,000+ km"].map((option) => (
-                                <button
-                                  key={option}
-                                  onClick={() => updateField("annualMileage", option)}
-                                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.annualMileage === option
-                                      ? "bg-primary text-primary-foreground"
-                                      : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                    }`}
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </>
+                        </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* Step 5: Employment */}
-                  {currentStep === 4 && (
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-bold mb-6 text-gradient">Employment Details</h2>
+                      {/* Step 2: Health & Lifestyle */}
+                      {currentStep === 1 && (
+                        <div className="space-y-8">
+                          <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                              <Heart className="w-6 h-6 text-primary" />
+                            </div>
+                            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-wider text-glow">Health & Bio-Profiling</h2>
+                          </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Employment Status</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Employed full-time", "Employed part-time", "Self-employed", "Retired", "Student", "Unemployed"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("employmentStatus", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.employmentStatus === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
+                          <div className="space-y-4">
+                            <label className="label-premium">Nicotine Exposure</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              {["Never", "Former", "Occasional", "Regular"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => updateField("smoker", option)}
+                                  className={`btn-select-premium py-3 ${formData.smoker === option ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="label-premium">Physical Optimization (Exercise)</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              {["Sedentary", "1-2x/week", "3-4x/week", "Daily"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => updateField("exerciseFrequency", option)}
+                                  className={`btn-select-premium py-3 ${formData.exerciseFrequency === option ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="label-premium">Condition History (Select all)</label>
+                            <div className="flex flex-wrap gap-2">
+                              {["None", "Diabetes", "Heart", "Hypertension", "Asthma", "Cancer", "Other"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => toggleArrayField("preExistingConditions", option)}
+                                  className={`btn-select-premium ${formData.preExistingConditions.includes(option) ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4 pt-4">
+                            <label className="label-premium">Optimization Priority</label>
+                            <div className="grid md:grid-cols-2 gap-3">
+                              {[
+                                { value: "prevention", label: "Preventive Care", desc: "Focus on early detection" },
+                                { value: "coverage", label: "Maximum Shield", desc: "Comprehensive risk coverage" },
+                                { value: "budget", label: "Efficient Budget", desc: "Optimized value-to-cost" },
+                                { value: "family", label: "Group Legacy", desc: "Multi-profile protection" },
+                              ].map((option) => (
+                                <button
+                                  key={option.value}
+                                  onClick={() => updateField("healthGoal", option.value)}
+                                  className={`p-4 rounded-xl text-left transition-all duration-300 border ${formData.healthGoal === option.value
+                                    ? "bg-primary/20 border-primary shadow-[0_0_20px_rgba(46,204,113,0.1)]"
+                                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                                    }`}
+                                >
+                                  <div className={`font-bold uppercase tracking-widest text-[10px] mb-1 ${formData.healthGoal === option.value ? "text-primary" : "text-muted-foreground"}`}>
+                                    {option.label}
+                                  </div>
+                                  <div className="text-sm text-foreground/80 font-light">{option.desc}</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Occupation</label>
-                        <input
-                          type="text"
-                          value={formData.occupation}
-                          onChange={(e) => updateField("occupation", e.target.value)}
-                          className="input-premium"
-                          placeholder="e.g., Software Engineer"
-                        />
-                      </div>
+                      {/* Step 3: Property */}
+                      {currentStep === 2 && (
+                        <div className="space-y-8">
+                          <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                              <Home className="w-6 h-6 text-primary" />
+                            </div>
+                            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-wider text-glow">Property & Asset Metrics</h2>
+                          </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Annual Income Range</label>
-                        <div className="flex flex-wrap gap-3">
-                          {["Under ₹5L", "₹5L - ₹10L", "₹10L - ₹20L", "₹20L - ₹50L", "₹50L - ₹1Cr", "₹1Cr+"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => updateField("annualIncome", option)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.annualIncome === option
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
+                          <div className="space-y-4">
+                            <label className="label-premium">Ownership Status</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              {["Own", "Rent", "Family", "Other"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => updateField("homeOwnership", option)}
+                                  className={`btn-select-premium py-3 ${formData.homeOwnership === option ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="label-premium">Architectural Class</label>
+                            <div className="flex flex-wrap gap-3">
+                              {["Independent", "Apartment", "Villa", "Bunglow", "N/A"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => updateField("propertyType", option)}
+                                  className={`btn-select-premium truncate ${formData.propertyType === option ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="label-premium">Estimated Synthesis Value (Asset)</label>
+                            <div className="relative">
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">₹</span>
+                              <input
+                                type="text"
+                                value={formData.propertyValue}
+                                onChange={(e) => updateField("propertyValue", e.target.value)}
+                                className="input-premium pl-8"
+                                placeholder="7,500,000"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="label-premium">Counter-Risk Features (Security)</label>
+                            <div className="flex flex-wrap gap-2">
+                              {["Alarm", "CCTV", "Smart Locks", "Gated", "Sprinklers", "None"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => toggleArrayField("securityFeatures", option)}
+                                  className={`btn-select-premium ${formData.securityFeatures.includes(option) ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-3">Industry Risk Level</label>
-                        <div className="grid md:grid-cols-3 gap-3">
-                          {[
-                            { value: "low", label: "Low Risk", desc: "Office, remote work" },
-                            { value: "medium", label: "Medium Risk", desc: "Travel, retail" },
-                            { value: "high", label: "High Risk", desc: "Construction, healthcare" },
-                          ].map((option) => (
-                            <button
-                              key={option.value}
-                              onClick={() => updateField("industryRisk", option.value)}
-                              className={`p-4 rounded-xl text-center transition-all ${formData.industryRisk === option.value
-                                  ? "bg-primary/20 border-2 border-primary"
-                                  : "bg-secondary/30 border-2 border-transparent hover:bg-secondary/50"
-                                }`}
-                            >
-                              <div className="font-medium text-foreground">{option.label}</div>
-                              <div className="text-xs text-muted-foreground">{option.desc}</div>
-                            </button>
-                          ))}
+                      {/* Step 4: Vehicles */}
+                      {currentStep === 3 && (
+                        <div className="space-y-8">
+                          <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                              <Car className="w-6 h-6 text-primary" />
+                            </div>
+                            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-wider text-glow">Transport Logistics</h2>
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="label-premium">Operational Fleet</label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {["Yes", "No", "Multiple"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => updateField("hasVehicle", option)}
+                                  className={`btn-select-premium py-3 ${formData.hasVehicle === option ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <AnimatePresence>
+                            {formData.hasVehicle !== "No" && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="space-y-8 overflow-hidden"
+                              >
+                                <div className="space-y-4">
+                                  <label className="label-premium">Mechanism Class</label>
+                                  <div className="flex flex-wrap gap-3">
+                                    {["Hatchback", "Sedan", "SUV", "Electric", "Two-Wheeler"].map((option) => (
+                                      <button
+                                        key={option}
+                                        onClick={() => updateField("vehicleType", option)}
+                                        className={`btn-select-premium ${formData.vehicleType === option ? "active" : ""}`}
+                                      >
+                                        {option}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                  <label className="label-premium">Logistical Age</label>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {["0-2 years", "3-5 years", "6-10 years", "10+ years"].map((option) => (
+                                      <button
+                                        key={option}
+                                        onClick={() => updateField("vehicleAge", option)}
+                                        className={`btn-select-premium py-3 ${formData.vehicleAge === option ? "active" : ""}`}
+                                      >
+                                        {option}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                  <label className="label-premium">Annual Utilization (km)</label>
+                                  <div className="flex flex-wrap gap-3">
+                                    {["< 5k", "5k-10k", "10k-20k", "20k+"].map((option) => (
+                                      <button
+                                        key={option}
+                                        onClick={() => updateField("annualMileage", option)}
+                                        className={`btn-select-premium flex-1 ${formData.annualMileage === option ? "active" : ""}`}
+                                      >
+                                        {option}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
+                      )}
 
-              {/* Navigation */}
-              <div className="flex justify-between mt-10 pt-6 border-t border-border/50">
-                <Button
-                  variant="outline"
-                  onClick={prevStep}
-                  disabled={currentStep === 0}
-                  className="gap-2"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-                <Button
-                  variant="hero"
-                  onClick={nextStep}
-                  className="gap-2"
-                >
-                  {currentStep === steps.length - 1 ? "Analyze My Profile" : "Continue"}
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                      {/* Step 5: Employment */}
+                      {currentStep === 4 && (
+                        <div className="space-y-8">
+                          <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                              <Briefcase className="w-6 h-6 text-primary" />
+                            </div>
+                            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-wider text-glow">Socio-Economic Parameters</h2>
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="label-premium">Professional Status</label>
+                            <div className="flex flex-wrap gap-2">
+                              {["Full-time", "Self-employed", "Retired", "Student", "Unemployed"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => updateField("employmentStatus", option)}
+                                  className={`btn-select-premium flex-1 min-w-[120px] ${formData.employmentStatus === option ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="label-premium">Specialization / Occupation</label>
+                            <input
+                              type="text"
+                              value={formData.occupation}
+                              onChange={(e) => updateField("occupation", e.target.value)}
+                              className="input-premium"
+                              placeholder="e.g. Bio-Medical Researcher"
+                            />
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="label-premium">Annual Revenue Range</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              {["Under 5L", "5L-10L", "10L-20L", "20L-50L", "50L+"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => updateField("annualIncome", option)}
+                                  className={`btn-select-premium py-3 ${formData.annualIncome === option ? "active" : ""}`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4 pt-4">
+                            <label className="label-premium">Sector Risk Coefficient</label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {[
+                                { value: "low", label: "Low", desc: "Stable Env" },
+                                { value: "medium", label: "Med", desc: "Dynamic Env" },
+                                { value: "high", label: "High", desc: "Extreme Env" },
+                              ].map((option) => (
+                                <button
+                                  key={option.value}
+                                  onClick={() => updateField("industryRisk", option.value)}
+                                  className={`p-4 rounded-xl text-center border transition-all duration-300 ${formData.industryRisk === option.value
+                                    ? "bg-primary/20 border-primary"
+                                    : "bg-white/5 border-white/10 hover:bg-white/10"
+                                    }`}
+                                >
+                                  <div className={`font-bold uppercase tracking-widest text-[10px] mb-1 ${formData.industryRisk === option.value ? "text-primary" : "text-muted-foreground"}`}>
+                                    {option.label}
+                                  </div>
+                                  <div className="text-[10px] text-foreground/60 leading-tight">{option.desc}</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Navigation */}
+                  <div className="flex justify-between items-center mt-12 pt-8 border-t border-white/5">
+                    <Button
+                      variant="heroOutline"
+                      onClick={prevStep}
+                      disabled={currentStep === 0}
+                      className="gap-2 px-6"
+                      size="lg"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Back
+                    </Button>
+                    <Button
+                      variant="hero"
+                      onClick={nextStep}
+                      className="gap-2 px-10"
+                      size="lg"
+                    >
+                      {currentStep === steps.length - 1 ? "Initialize Synthesis" : "Process Next Node"}
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
+
+              {/* Sidebar Steps */}
+              <aside className="hidden lg:block space-y-4">
+                <div className="sticky top-32">
+                  <h3 className="text-xs font-bold text-muted-foreground tracking-widest uppercase mb-6 px-4">Neural Nodes</h3>
+                  <div className="space-y-2">
+                    {steps.map((step, index) => (
+                      <button
+                        key={step.id}
+                        onClick={() => {
+                          setDirection(index > currentStep ? 1 : -1);
+                          setCurrentStep(index);
+                        }}
+                        className={`w-full group flex items-center gap-4 p-4 rounded-2xl transition-all duration-500 border ${index === currentStep
+                          ? "bg-primary/10 border-primary/30 shadow-glow-accent"
+                          : index < currentStep
+                            ? "bg-white/5 border-success/20 opacity-80"
+                            : "bg-transparent border-transparent opacity-40 hover:opacity-60"
+                          }`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 ${index === currentStep
+                          ? "bg-primary text-primary-foreground shadow-glow"
+                          : index < currentStep
+                            ? "bg-success/20 text-success"
+                            : "bg-white/5 text-muted-foreground"
+                          }`}>
+                          {index < currentStep ? (
+                            <CheckCircle className="w-5 h-5" />
+                          ) : (
+                            <step.icon className="w-5 h-5 flex-shrink-0" />
+                          )}
+                        </div>
+                        <div className="text-left">
+                          <p className={`text-[10px] uppercase tracking-widest font-bold ${index === currentStep ? "text-primary" : "text-muted-foreground"}`}>Node 0{index + 1}</p>
+                          <p className={`text-sm font-semibold transition-colors ${index === currentStep ? "text-white" : "text-muted-foreground"}`}>{step.title}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Summary Card */}
+                  <div className="mt-8 p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                      <span className="text-[10px] font-bold text-white uppercase tracking-widest">Synthesis Engine Active</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                      We're building your personalised coverage profile as you fill in each section.
+                    </p>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
         </div>

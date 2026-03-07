@@ -33,16 +33,16 @@ export const WhyChooseUs = () => {
                             className="space-y-6"
                         >
                             <h2 className="text-3xl md:text-4xl font-bold leading-tight">
-                                Why Thousands Trust <span className="text-gradient">AI Policy Navigator</span>
+                                Why Thousands Trust <span className="text-gradient">PolicyNav</span>
                             </h2>
                             <p className="text-muted-foreground text-lg">
-                                We've revolutionized the way people think about insurance. By combining AI with human expertise, we provide a seamless, transparent experience.
+                                We've simplified the way people choose insurance. By putting transparency first, we make sure you always know what you're getting—and why.
                             </p>
 
                             <div className="space-y-4 pt-4">
                                 {benefits.map((benefit, idx) => (
                                     <div key={idx} className="flex items-start gap-4">
-                                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mt-1 shrink-0">
                                             <CheckCircle2 className="w-4 h-4 text-primary" />
                                         </div>
                                         <div>
@@ -68,8 +68,8 @@ export const WhyChooseUs = () => {
                                 <div className="relative w-full h-full glass-card flex items-center justify-center p-12 text-center">
                                     <div className="space-y-4">
                                         <div className="text-5xl font-bold text-gradient">98%</div>
-                                        <p className="text-xl font-medium">Customer Satisfaction Rate</p>
-                                        <p className="text-muted-foreground">Join thousands of happy customers who found their perfect plan through our platform.</p>
+                                        <p className="text-xl font-medium">Customer Satisfaction</p>
+                                        <p className="text-muted-foreground">Join thousands of users who found their perfect plan through our platform.</p>
                                     </div>
                                 </div>
                             </div>

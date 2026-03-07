@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# TypeScript caching
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+server/.env
