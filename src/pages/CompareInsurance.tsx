@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion } from "framer-motion";
@@ -93,6 +93,19 @@ const CompareInsurance = () => {
     availablePolicies[1],
   ]);
   const [showSelector, setShowSelector] = useState(false);
+  const [showCustomForm, setShowCustomForm] = useState(false);
+  const [customPolicy, setCustomPolicy] = useState<Partial<Policy>>({
+    name: "",
+    provider: "",
+    premium: 0,
+    coverage: 0,
+    claimRatio: 0,
+    hospitalNetwork: 0,
+    waitingPeriod: 0,
+    roomRent: "",
+    preExisting: 0,
+    features: [],
+  });
 
   const addPolicy = (policy: Policy) => {
     if (selectedPolicies.length < 4 && !selectedPolicies.find(p => p.id === policy.id)) {
@@ -103,6 +116,41 @@ const CompareInsurance = () => {
 
   const removePolicy = (id: string) => {
     setSelectedPolicies(selectedPolicies.filter(p => p.id !== id));
+  };
+
+  const handleCustomPolicySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newPolicy: Policy = {
+      id: `custom-${Date.now()}`,
+      name: customPolicy.name || "Custom Policy",
+      provider: customPolicy.provider || "Custom Provider",
+      premium: Number(customPolicy.premium) || 0,
+      coverage: Number(customPolicy.coverage) || 0,
+      claimRatio: Number(customPolicy.claimRatio) || 0,
+      hospitalNetwork: Number(customPolicy.hospitalNetwork) || 0,
+      waitingPeriod: Number(customPolicy.waitingPeriod) || 0,
+      roomRent: customPolicy.roomRent || "Not specified",
+      preExisting: Number(customPolicy.preExisting) || 0,
+      features: customPolicy.features?.length ? customPolicy.features : ["No specific features defined"],
+    };
+
+    if (selectedPolicies.length < 4) {
+      setSelectedPolicies([...selectedPolicies, newPolicy]);
+    }
+    setShowCustomForm(false);
+    setCustomPolicy({
+      name: "",
+      provider: "",
+      premium: 0,
+      coverage: 0,
+      claimRatio: 0,
+      hospitalNetwork: 0,
+      waitingPeriod: 0,
+      roomRent: "",
+      preExisting: 0,
+      features: [],
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -228,6 +276,21 @@ const CompareInsurance = () => {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
+
+                <div className="mb-6">
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-dashed border-primary/50 text-primary hover:bg-primary/10"
+                    onClick={() => {
+                      setShowSelector(false);
+                      setShowCustomForm(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Custom External Policy
+                  </Button>
+                </div>
+
                 <div className="space-y-3">
                   {availablePolicies
                     .filter(p => !selectedPolicies.find(sp => sp.id === p.id))
@@ -243,6 +306,151 @@ const CompareInsurance = () => {
                       </button>
                     ))}
                 </div>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Custom Policy Form Modal */}
+          {showCustomForm && (
+            <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="glass-card p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-semibold">Add Custom Policy</h3>
+                  <button
+                    onClick={() => setShowCustomForm(false)}
+                    className="p-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <form onSubmit={handleCustomPolicySubmit} className="space-y-4 text-left">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Policy Name</label>
+                      <input 
+                        required
+                        type="text"
+                        placeholder="e.g. Health Advantage"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.name}
+                        onChange={(e) => setCustomPolicy({...customPolicy, name: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Provider / Company</label>
+                      <input 
+                        required
+                        type="text"
+                        placeholder="e.g. Acme Insurance"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.provider}
+                        onChange={(e) => setCustomPolicy({...customPolicy, provider: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Annual Premium (₹)</label>
+                      <input 
+                        required
+                        type="number"
+                        placeholder="e.g. 15000"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.premium || ''}
+                        onChange={(e) => setCustomPolicy({...customPolicy, premium: Number(e.target.value)})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Sum Insured / Coverage (₹)</label>
+                      <input 
+                        required
+                        type="number"
+                        placeholder="e.g. 500000"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.coverage || ''}
+                        onChange={(e) => setCustomPolicy({...customPolicy, coverage: Number(e.target.value)})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Claim Ratio (%)</label>
+                      <input 
+                        type="number"
+                        placeholder="e.g. 95"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.claimRatio || ''}
+                        onChange={(e) => setCustomPolicy({...customPolicy, claimRatio: Number(e.target.value)})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Network Hospitals</label>
+                      <input 
+                        type="number"
+                        placeholder="e.g. 8000"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.hospitalNetwork || ''}
+                        onChange={(e) => setCustomPolicy({...customPolicy, hospitalNetwork: Number(e.target.value)})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Waiting Period (days)</label>
+                      <input 
+                        type="number"
+                        placeholder="e.g. 30"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.waitingPeriod || ''}
+                        onChange={(e) => setCustomPolicy({...customPolicy, waitingPeriod: Number(e.target.value)})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Pre-existing Wait (years)</label>
+                      <input 
+                        type="number"
+                        step="0.5"
+                        placeholder="e.g. 3"
+                        className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                        value={customPolicy.preExisting || ''}
+                        onChange={(e) => setCustomPolicy({...customPolicy, preExisting: Number(e.target.value)})}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Room Rent Limit</label>
+                    <input 
+                      type="text"
+                      placeholder="e.g. No Limit, 1% of SI, Single Private Room"
+                      className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                      value={customPolicy.roomRent}
+                      onChange={(e) => setCustomPolicy({...customPolicy, roomRent: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Key Features (comma separated)</label>
+                    <input 
+                      type="text"
+                      placeholder="e.g. Maternity Cover, Annual Health Checkup, Day Care Treatments"
+                      className="w-full p-2.5 rounded-xl bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                      value={customPolicy.features?.join(', ')}
+                      onChange={(e) => setCustomPolicy({
+                        ...customPolicy, 
+                        features: e.target.value.split(',').map(f => f.trim()).filter(Boolean)
+                      })}
+                    />
+                  </div>
+
+                  <div className="pt-4 flex justify-end gap-3">
+                    <Button type="button" variant="ghost" onClick={() => setShowCustomForm(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">
+                      Add to Comparison
+                    </Button>
+                  </div>
+                </form>
               </motion.div>
             </div>
           )}
