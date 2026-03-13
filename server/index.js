@@ -25,7 +25,7 @@ const geminiModel = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-// app.use(mongoSanitize());
+// app.use(mongoSanitize()); // Disabled due to Express 5 breaking change on req.query getter
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -37,10 +37,9 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// mongoose.connect(process.env.MONGODB_URI)
-//     .then(() => console.log('Connected to MongoDB'))
-//     .catch(err => console.error('Could not connect to MongoDB:', err));
-console.log('MongoDB connection skipped per user request.');
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Could not connect to MongoDB:', err));
 
 // ─── Helper: Parse Gemini JSON ─────────────────────────────────────────────────
 function parseGeminiJSON(text) {
@@ -481,6 +480,57 @@ app.post('/api/seed', async (req, res) => {
         res.json({ message: 'Database seeded successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+// ─── AI: PolicyBot Chat ────────────────────────────────────────────────────────
+// POST /api/ai/chat
+// Body: { messages: [{ role: "user", content: "..." }], contextText: "Optional policy details" }
+app.post('/api/ai/chat', async (req, res) => {
+    try {
+        const { messages, contextText } = req.body;
+
+        if (!messages || !Array.isArray(messages)) {
+            return res.status(400).json({ message: 'Messages array is required.' });
+        }
+
+        const systemPrompt = `
+You are "PolicyBot", a helpful and professional AI insurance assistant for PolicyNav (an Indian insurance comparison platform).
+Your goal is to answer user questions about insurance policies, coverage, and general insurance terms in plain, easy-to-understand English.
+
+${contextText ? `CONTEXT ABOUT THE CURRENT POLICY VIEWED BY USER:
+${contextText}
+` : ''}
+
+STRICT RULES:
+1. Be concise. Don't write essays.
+2. If context is provided, prioritize it to answer questions.
+3. If the user asks about specific plans, recommend Indian insurers (LIC, HDFC Ergo, ICICI Lombard, etc.).
+4. Use a helpful, fintech-professional tone.
+5. If you don't know something, don't make it up; admit it and suggest they contact an official broker.
+6. Use simple markdown for formatting (bolding, lists).
+`;
+
+        const chat = geminiModel.startChat({
+            history: [
+                { role: "user", parts: [{ text: systemPrompt }] },
+                { role: "model", parts: [{ text: "Understood. I am PolicyBot. I will assist the user with their insurance queries based on the provided context and general Indian insurance standards." }] },
+                ...messages.slice(0, -1).map(m => ({
+                    role: m.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: m.content }]
+                }))
+            ],
+            generationConfig: { maxOutputTokens: 500 }
+        });
+
+        const lastMessage = messages[messages.length - 1].content;
+        const result = await chat.sendMessage(lastMessage);
+        const responseText = result.response.text();
+
+        res.json({ content: responseText });
+    } catch (error) {
+        console.error('PolicyBot error:', error);
+        res.status(500).json({ message: 'Chat failed. AI engine error.', error: error.message });
     }
 });
 

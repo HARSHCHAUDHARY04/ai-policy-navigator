@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./components/theme-provider";
 import Index from "./pages/Index";
 import CustomerProfile from "./pages/CustomerProfile";
 import RiskDashboard from "./pages/RiskDashboard";
@@ -15,15 +16,18 @@ import AIInsuranceSearch from "./pages/AIInsuranceSearch";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import NotFound from "./pages/NotFound";
+import { PolicyBot } from "./components/ui/PolicyBot";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <AuthProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PolicyBot />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -40,8 +44,9 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

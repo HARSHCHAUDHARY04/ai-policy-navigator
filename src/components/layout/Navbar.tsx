@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Shield, ChevronRight, LogOut, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -77,6 +78,7 @@ export const Navbar = () => {
 
             {/* CTA / Auth Buttons */}
             <div className="hidden md:flex items-center gap-4">
+              <ModeToggle />
               {isAuthenticated ? (
                 <div className="flex items-center gap-3">
                   <Link to="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-secondary transition-colors border border-border">
