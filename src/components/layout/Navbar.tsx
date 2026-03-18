@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Shield, ChevronRight, LogOut, User } from "lucide-react";
+import { Menu, X, Shield, ChevronRight, LogOut, User, Home, Search, BrainCircuit, Scale, Calculator as CalculatorIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ModeToggle } from "@/components/mode-toggle";
 
 const navLinks = [
-  { name: "Home", path: "/" },
-  { name: "Search", path: "/ai-search" },
-  { name: "Quiz", path: "/quiz" },
-  { name: "Compare", path: "/compare" },
-  { name: "Calculator", path: "/calculator" },
+  { name: "Home", path: "/", icon: Home },
+  { name: "Search", path: "/ai-search", icon: Search },
+  { name: "Quiz", path: "/quiz", icon: BrainCircuit },
+  { name: "Compare", path: "/compare", icon: Scale },
+  { name: "Calculator", path: "/calculator", icon: CalculatorIcon },
 ];
 
 export const Navbar = () => {
@@ -55,15 +55,18 @@ export const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-2">
-              {navLinks.map((link) => (
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 rounded-full ${location.pathname === link.path
+                  className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-300 rounded-full ${location.pathname === link.path
                     ? "text-primary text-glow"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                     }`}
                 >
+                  <Icon className="w-4 h-4" />
                   {link.name}
                   {location.pathname === link.path && (
                     <motion.div
@@ -73,7 +76,8 @@ export const Navbar = () => {
                     />
                   )}
                 </Link>
-              ))}
+                );
+              })}
             </div>
 
             {/* CTA / Auth Buttons */}
@@ -129,7 +133,9 @@ export const Navbar = () => {
             className="fixed inset-x-4 top-24 z-40 md:hidden"
           >
             <div className="premium-glass p-6 space-y-4">
-              {navLinks.map((link, index) => (
+              {navLinks.map((link, index) => {
+                const Icon = link.icon;
+                return (
                 <motion.div
                   key={link.path}
                   initial={{ opacity: 0, x: -20 }}
@@ -138,15 +144,17 @@ export const Navbar = () => {
                 >
                   <Link
                     to={link.path}
-                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-all ${location.pathname === link.path
+                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-base font-medium transition-all ${location.pathname === link.path
                       ? "bg-primary/20 text-primary border border-primary/30"
                       : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                       }`}
                   >
+                    <Icon className="w-5 h-5" />
                     {link.name}
                   </Link>
                 </motion.div>
-              ))}
+                );
+              })}
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

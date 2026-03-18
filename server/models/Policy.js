@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const policySchema = new mongoose.Schema({
     name: { type: String, required: true },
     provider: { type: String, required: true },
-    type: { type: String, enum: ['health', 'property', 'auto', 'life'], required: true },
+    type: { type: String, enum: ['health', 'property', 'auto', 'life', 'travel'], required: true },
     matchScore: { type: Number, required: true },
     monthlyPremium: { type: Number, required: true },
     coverage: { type: String, required: true },

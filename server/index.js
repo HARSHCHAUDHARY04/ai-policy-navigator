@@ -7,7 +7,26 @@ const jwt = require('jsonwebtoken');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
+// Multer setup for audio uploads
+const upload = multer({ dest: 'uploads/' });
+// express-mongo-sanitize is not compatible with Express v5 (req.query is read-only).
+// Using a custom sanitizer instead.
+function sanitizeObject(obj) {
+    if (obj && typeof obj === 'object') {
+        for (const key in obj) {
+            if (key.startsWith('$') || key.includes('.')) {
+                delete obj[key];
+            } else if (typeof obj[key] === 'object') {
+                sanitizeObject(obj[key]);
+            }
+        }
+    }
+    return obj;
+}
 
 const Policy = require('./models/Policy');
 const Provider = require('./models/Provider');
@@ -16,16 +35,39 @@ const User = require('./models/User');
 const JWT_SECRET = process.env.JWT_SECRET || 'policyai_super_secret_jwt_key_2024';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // ─── Gemini Setup ──────────────────────────────────────────────────────────────
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+
+// System instruction for the model
+const systemInstruction = `You are a premium Indian insurance consultant for PolicyNav AI. 
+Your goal is to provide highly accurate, professional, and personalized insurance recommendations.
+STRICT RULES:
+1. Use real Indian insurers (e.g., HDFC Ergo, Star Health, LIC, ICICI Lombard, Niva Bupa, etc.).
+2. Use specific, real plan names existing in 2024.
+3. Monthly premiums must be realistic market rates for India.
+4. "whyRecommended" must be insightful and directly address user constraints (age, health, budget).
+5. Always return output as a structured JSON object/array matching the requested schema.
+6. Real provider URLs only.`;
+
+const geminiModel = genAI.getGenerativeModel({ 
+    model: 'gemini-2.5-flash',
+    systemInstruction,
+    generationConfig: { 
+        responseMimeType: 'application/json',
+        temperature: 1.0 
+    }
+});
 
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-// app.use(mongoSanitize()); // Disabled due to Express 5 breaking change on req.query getter
+// Sanitize req.body (Express v5 compatible)
+app.use((req, res, next) => {
+    if (req.body) sanitizeObject(req.body);
+    next();
+});
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -40,6 +82,16 @@ app.use('/api/', limiter);
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB:', err));
+
+// Health Check
+app.get('/api/health', (req, res) => {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    res.json({
+        status: 'ok',
+        database: dbStatus,
+        timestamp: new Date().toISOString()
+    });
+});
 
 // ─── Helper: Parse Gemini JSON ─────────────────────────────────────────────────
 function parseGeminiJSON(text) {
@@ -208,93 +260,35 @@ app.post('/api/ai/recommend', async (req, res) => {
         };
 
         const prompt = `
-You are an expert Indian insurance advisor. A user completed a quiz:
-- Primary insurance need: ${needType}
-- Age group: ${ageGroup}
-- Monthly budget: ${budget}
-- Pre-existing conditions: ${preExisting}
-- Priority: ${priority}
+A user completed a risk profile quiz:
+- Primary goal: ${needType}
+- Age: ${ageGroup}
+- Budget: ${budget}
+- Conditions: ${preExisting}
+- Primary Concern: ${priority}
 
-You MUST return a JSON array of EXACTLY 4 Indian insurance policies.
-Each policy must be a DIFFERENT type as specified below — do not deviate:
+Recommend 4 Indian insurance policies.
+Slot 1 MUST be the primary type: "${orderedTypes[0]}".
+Slots 2-4 must be these different types respectively: "${orderedTypes[1]}", "${orderedTypes[2]}", "${orderedTypes[3]}".
 
-Slot 1 type: "${orderedTypes[0]}" — ${typeDescriptions[orderedTypes[0]]}
-Slot 2 type: "${orderedTypes[1]}" — ${typeDescriptions[orderedTypes[1]]}
-Slot 3 type: "${orderedTypes[2]}" — ${typeDescriptions[orderedTypes[2]]}
-Slot 4 type: "${orderedTypes[3]}" — ${typeDescriptions[orderedTypes[3]]}
-
-Use real Indian insurers: HDFC Ergo, Star Health, LIC, ICICI Lombard, Bajaj Allianz, 
-Care Health, Niva Bupa, SBI Life, Tata AIG, Reliance General, New India Assurance, 
-PNB MetLife, Kotak Life, Edelweiss Tokio, Royal Sundaram, etc.
-Use a different insurer for each slot if possible.
-
-Return ONLY a raw JSON array, no markdown, no explanation:
+Return a JSON array:
 [
   {
     "name": "Exact Plan Name",
     "provider": "Insurer Name",
-    "type": "${orderedTypes[0]}",
-    "matchScore": 94,
-    "monthlyPremium": 2200,
-    "coverage": "₹50 Lakh",
-    "badge": "Best Match",
-    "features": ["feature1", "feature2", "feature3", "feature4", "feature5"],
-    "notIncluded": ["exclusion1", "exclusion2"],
-    "whyRecommended": "Why this fits the user specifically.",
-    "providerUrl": "https://actual-insurer-website.com/product"
-  },
-  {
-    "name": "Exact Plan Name",
-    "provider": "Insurer Name",
-    "type": "${orderedTypes[1]}",
-    "matchScore": 89,
-    "monthlyPremium": 1800,
-    "coverage": "₹1 Crore",
-    "features": ["feature1", "feature2", "feature3", "feature4"],
-    "notIncluded": ["exclusion1"],
-    "whyRecommended": "Why life insurance is also important for this user.",
-    "providerUrl": "https://actual-insurer-website.com/product"
-  },
-  {
-    "name": "Exact Plan Name",
-    "provider": "Insurer Name",
-    "type": "${orderedTypes[2]}",
-    "matchScore": 82,
-    "monthlyPremium": 1200,
-    "coverage": "Comprehensive",
-    "features": ["feature1", "feature2", "feature3", "feature4"],
-    "notIncluded": ["exclusion1"],
-    "whyRecommended": "Why ${typeDescriptions[orderedTypes[2]]} matters for this user.",
-    "providerUrl": "https://actual-insurer-website.com/product"
-  },
-  {
-    "name": "Exact Plan Name",
-    "provider": "Insurer Name",
-    "type": "${orderedTypes[3]}",
-    "matchScore": 78,
-    "monthlyPremium": 900,
-    "coverage": "₹30 Lakh",
-    "features": ["feature1", "feature2", "feature3"],
-    "notIncluded": ["exclusion1"],
-    "whyRecommended": "Why ${typeDescriptions[orderedTypes[3]]} is also worth considering.",
-    "providerUrl": "https://actual-insurer-website.com/product"
+    "type": "type_slug",
+    "matchScore": number (Slot 1 highest 95+, then decreasing),
+    "monthlyPremium": number,
+    "coverage": "String (e.g. ₹50 Lakh)",
+    "badge": "String (Only for Slot 1, e.g. 'Best Match')",
+    "features": ["5 key benefits"],
+    "notIncluded": ["2 main exclusions"],
+    "whyRecommended": "Deeply personalized explanation.",
+    "providerUrl": "Real product link"
   }
-]
+]`;
 
-STRICT RULES:
-1. Slot 1 MUST have type="${orderedTypes[0]}", slot 2 MUST have type="${orderedTypes[1]}", slot 3 MUST have type="${orderedTypes[2]}", slot 4 MUST have type="${orderedTypes[3]}".
-2. All 4 types must be different — never repeat the same type string.
-3. Only slot 1 gets the "badge" field. Remove "badge" from slots 2, 3, 4.
-4. Slot 1 matchScore must be highest (90+), others decrease.
-5. Real plan names, real insurer names, real URLs only.
-`;
-
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-flash-latest',
-            generationConfig: { temperature: 1.2 }
-        });
-
-        const result = await model.generateContent(prompt);
+        const result = await geminiModel.generateContent(prompt);
         const text = result.response.text();
         const recommendations = parseGeminiJSON(text);
 
@@ -326,37 +320,25 @@ app.post('/api/ai/search', async (req, res) => {
         }
 
         const prompt = `
-You are an expert Indian insurance advisor. A user is searching for insurance with this query:
-"${query}"
+Search Query: "${query}"
 
-Analyse their requirements and recommend exactly 3 real Indian insurance policies available in 2024.
-Use only real insurers: HDFC Ergo, Star Health, LIC, ICICI Lombard, Bajaj Allianz, Care Health, Niva Bupa, SBI Life, Tata AIG, Reliance General, New India Assurance, etc.
-
-Return ONLY a valid JSON array (no markdown, no explanation outside JSON) with exactly this structure:
+Recommend exactly 3 real Indian insurance policies.
+Return a JSON array:
 [
   {
-    "name": "Policy Plan Name",
-    "provider": "Insurer Name",
+    "name": "Exact Plan Name",
+    "provider": "Real Insurer",
     "type": "health|life|auto|property|travel",
-    "matchScore": 95,
-    "monthlyPremium": 2500,
-    "coverage": "₹50L",
-    "badge": "Best Match",
-    "features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5"],
-    "notIncluded": ["Exclusion 1", "Exclusion 2"],
-    "whyRecommended": "Clear explanation of why this policy fits the search query.",
-    "providerUrl": "https://www.realwebsite.com/product-page"
+    "matchScore": number (75-98, sorted desc),
+    "monthlyPremium": number,
+    "coverage": "String (e.g. ₹20L)",
+    "badge": "String (Optional, only for top result)",
+    "features": ["4-5 key features"],
+    "notIncluded": ["2 main exclusions"],
+    "whyRecommended": "Concise technical explanation.",
+    "providerUrl": "Real product link"
   }
-]
-
-Rules:
-- Only add "badge" to the top ranked result.
-- Set matchScore between 75-98.
-- Extract budget, age, conditions, type from the user query.
-- Make whyRecommended concise and directly tied to their query.
-- Include real providerUrl for each insurer.
-- Sort by matchScore descending.
-`;
+]`;
 
         const result = await geminiModel.generateContent(prompt);
         const text = result.response.text();
@@ -372,6 +354,46 @@ Rules:
             userMessage = 'AI engine quota exceeded. Please try again later.';
         }
         res.status(500).json({ message: userMessage, error: error.message });
+    }
+});
+
+// ─── AI: Audio Transcription ──────────────────────────────────────────────────
+// POST /api/ai/transcribe
+app.post('/api/ai/transcribe', upload.single('audio'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No audio file provided.' });
+        }
+
+        const filePath = req.file.path;
+        const fileContent = fs.readFileSync(filePath);
+        
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const result = await model.generateContent([
+            "Listen to this audio and transcribe it accurately. Only return the transcription text, nothing else.",
+            {
+                inlineData: {
+                    data: fileContent.toString("base64"),
+                    mimeType: req.file.mimetype || "audio/m4a", // expo-av default on iOS
+                },
+            },
+        ]);
+
+        const transcript = result.response.text().trim();
+
+        // Clean up uploaded file
+        fs.unlinkSync(filePath);
+
+        res.json({ transcript });
+    } catch (error) {
+        console.error('Transcription error:', error);
+        res.status(500).json({ message: 'Transcription failed.', error: error.message });
+        
+        // Cleanup if file exists
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
     }
 });
 

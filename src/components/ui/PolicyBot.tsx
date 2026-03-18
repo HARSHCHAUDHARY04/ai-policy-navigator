@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { API_BASE_URL } from "@/config";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, X, Send, MinusCircle, MessageCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ export function PolicyBot({ contextText }: { contextText?: string }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5001/api/ai/chat", {
+      const response = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { API_BASE_URL } from "@/config";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,7 +15,9 @@ import {
     ChevronRight,
     ExternalLink,
     Zap,
-    MessageSquare
+    MessageSquare,
+    Mic,
+    MicOff
 } from "lucide-react";
 
 interface Recommendation {
@@ -53,6 +56,9 @@ const AIInsuranceSearch = () => {
     const [error, setError] = useState<string | null>(null);
     const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
     const [searched, setSearched] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognitionRef = useRef<any>(null);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -73,7 +79,7 @@ const AIInsuranceSearch = () => {
         setExpandedIdx(null);
 
         try {
-            const response = await fetch("http://localhost:5000/api/ai/search", {
+            const response = await fetch(`${API_BASE_URL}/ai/search`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ query }),
@@ -81,8 +87,8 @@ const AIInsuranceSearch = () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || "Server communication failed.");
             setRecommendations(data.recommendations || []);
-        } catch (err: any) {
-            setError(err.message || "Cognitive engine offline. Please try again.");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Cognitive engine offline. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -93,6 +99,44 @@ const AIInsuranceSearch = () => {
             e.preventDefault();
             handleSearch();
         }
+    };
+
+    const toggleListening = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            setError("Voice search is not supported in this browser.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-IN';
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setQuery(transcript);
+            // Optional: Automatically trigger search
+            // setTimeout(() => handleSearch(), 500);
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
     };
 
     return (
@@ -142,6 +186,14 @@ const AIInsuranceSearch = () => {
                                         className="w-full pl-12 pr-4 py-4 rounded-xl bg-transparent border-none text-white placeholder:text-muted-foreground/50 text-base md:text-lg resize-none focus:outline-none focus:ring-0 min-h-[56px] font-light leading-relaxed scrollbar-hide"
                                         style={{ overflowY: 'hidden' }}
                                     />
+                                    <button
+                                        onClick={toggleListening}
+                                        className={`absolute right-4 top-4 p-2 rounded-full transition-all duration-300 ${isListening ? 'bg-primary/20 text-primary animate-pulse scale-125' : 'text-primary/40 hover:text-primary hover:bg-primary/10'
+                                            }`}
+                                        title={isListening ? "Stop listening" : "Voice Search"}
+                                    >
+                                        {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                                    </button>
                                 </div>
 
                                 <button

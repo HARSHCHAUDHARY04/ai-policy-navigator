@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE_URL } from "@/config";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,7 +71,7 @@ const InsuranceQuiz = () => {
       setShowResults(true);
       setError(null);
       try {
-        const response = await fetch("http://localhost:5000/api/ai/recommend", {
+        const response = await fetch(`${API_BASE_URL}/ai/recommend`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ answers }),
@@ -78,8 +79,8 @@ const InsuranceQuiz = () => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Server error. Please try again.");
         setRecommendations(data.recommendations || []);
-      } catch (err: any) {
-        setError(err.message || "Something went wrong. Please try again.");
+      } catch (err: unknown) {
+        setError((err as Error).message || "Something went wrong. Please try again.");
       } finally {
         setIsLoading(false);
       }

@@ -20,8 +20,8 @@ export default function LoginPage() {
         try {
             await login(email, password);
             navigate("/");
-        } catch (err: any) {
-            setError(err.message || "Login failed. Please try again.");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Login failed. Please try again.");
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { API_BASE_URL } from "@/config";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import {
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 // Basic logic to generate risk data from user profile
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const generateRiskData = (user: any) => {
   if (!user) return null;
 
@@ -108,8 +110,9 @@ const RiskDashboard = () => {
       if (!userId) return null;
       // In a real app, we'd have a GET /api/users/:id endpoint
       // For now, we'll just fetch all and find ours or return null
-      const response = await fetch('http://localhost:5000/api/users');
+      const response = await fetch(`${API_BASE_URL}/users`);
       const users = await response.json();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return users.find((u: any) => u._id === userId) || users[users.length - 1]; // fallback to last user
     },
     enabled: !!userId

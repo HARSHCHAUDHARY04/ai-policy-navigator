@@ -30,8 +30,8 @@ export default function SignupPage() {
         try {
             await register(name, email, password);
             navigate("/profile");
-        } catch (err: any) {
-            setError(err.message || "Registration failed. Try again.");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Registration failed. Try again.");
         } finally {
             setLoading(false);
         }
