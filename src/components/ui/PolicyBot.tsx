@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "@/config";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, X, Send, MinusCircle, MessageCircle, Loader2 } from "lucide-react";
+import { Bot, X, Send, MinusCircle, MessageCircle, Loader2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Message {
@@ -16,13 +16,39 @@ export function PolicyBot({ contextText }: { contextText?: string }) {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      synthRef.current = window.speechSynthesis;
+    }
+    return () => {
+      if (synthRef.current) synthRef.current.cancel();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen && synthRef.current) {
+      synthRef.current.cancel();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const speak = (text: string) => {
+    if (isMuted || !synthRef.current) return;
+    synthRef.current.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    synthRef.current.speak(utterance);
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -48,6 +74,7 @@ export function PolicyBot({ contextText }: { contextText?: string }) {
       const data = await response.json();
       if (data.content) {
         setMessages(prev => [...prev, { role: "assistant", content: data.content }]);
+        speak(data.content);
       } else {
         throw new Error(data.message || "Failed to get response");
       }
@@ -79,12 +106,26 @@ export function PolicyBot({ contextText }: { contextText?: string }) {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none">AI Assistant</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-white/10 rounded-full transition-colors"
-              >
-                <X className="w-5 h-5 text-muted-foreground" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => {
+                    setIsMuted(!isMuted);
+                    if (!isMuted && synthRef.current) {
+                      synthRef.current.cancel();
+                    }
+                  }}
+                  className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                  title={isMuted ? "Unmute Bot" : "Mute Bot"}
+                >
+                  {isMuted ? <VolumeX className="w-5 h-5 text-muted-foreground" /> : <Volume2 className="w-5 h-5 text-primary" />}
+                </button>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}

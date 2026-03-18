@@ -59,6 +59,7 @@ const AIInsuranceSearch = () => {
     const [isListening, setIsListening] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognitionRef = useRef<any>(null);
+    const shouldSubmitRef = useRef(false);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -116,12 +117,18 @@ const AIInsuranceSearch = () => {
         }
 
         const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.continuous = true;
+        recognition.interimResults = true;
         recognition.lang = 'en-IN';
 
         recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
+        recognition.onend = () => {
+            setIsListening(false);
+            if (shouldSubmitRef.current) {
+                shouldSubmitRef.current = false;
+                setTimeout(() => handleSearch(), 100);
+            }
+        };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onerror = (event: any) => {
             console.error("Speech recognition error", event.error);
@@ -129,14 +136,22 @@ const AIInsuranceSearch = () => {
         };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setQuery(transcript);
-            // Optional: Automatically trigger search
-            // setTimeout(() => handleSearch(), 500);
+            let currentTranscript = "";
+            for (let i = 0; i < event.results.length; ++i) {
+                currentTranscript += event.results[i][0].transcript;
+            }
+            setQuery(currentTranscript);
         };
 
         recognitionRef.current = recognition;
         recognition.start();
+    };
+
+    const handleStopAndSearch = () => {
+        if (isListening) {
+            shouldSubmitRef.current = true;
+            recognitionRef.current?.stop();
+        }
     };
 
     return (
@@ -197,12 +212,17 @@ const AIInsuranceSearch = () => {
                                 </div>
 
                                 <button
-                                    onClick={handleSearch}
-                                    disabled={isLoading || query.trim().length < 5}
-                                    className="w-full md:w-auto self-end md:self-center bg-white text-black font-semibold px-8 py-4 rounded-xl hover:bg-neutral-200 transition-all duration-300 flex items-center justify-center gap-2 group/btn disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                    onClick={isListening ? handleStopAndSearch : handleSearch}
+                                    disabled={(!isListening && isLoading) || (!isListening && query.trim().length < 5)}
+                                    className={`w-full md:w-auto self-end md:self-center font-semibold px-8 py-4 rounded-xl hover:opacity-90 transition-all duration-300 flex items-center justify-center gap-2 group/btn disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ${isListening ? 'bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20 animate-pulse' : 'bg-white text-black hover:bg-neutral-200'}`}
                                 >
-                                    {isLoading ? (
+                                    {isLoading && !isListening ? (
                                         <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                    ) : isListening ? (
+                                        <>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
+                                            <span>Stop & Search</span>
+                                        </>
                                     ) : (
                                         <>
                                             <Sparkles className="w-4 h-4 text-black group-hover/btn:text-primary transition-colors" />
