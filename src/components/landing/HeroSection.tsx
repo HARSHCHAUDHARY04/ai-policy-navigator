@@ -45,7 +45,7 @@ export const HeroSection = () => {
               transition={{ duration: 0.8, delay: 0.35, ease: "easeOut" }}
               className="text-lg md:text-xl text-muted-foreground/90 max-w-2xl font-light leading-relaxed mx-auto lg:mx-0"
             >
-              Stop guessing. PolicyNav scans and compares India's top insurance plans to find the perfect coverage for your family, health, and assets—simply and transparently.
+              Stop guessing. PolicyNavigator scans and compares India's top insurance plans to find the perfect coverage for your family, health, and assets—simply and transparently.
             </motion.p>
 
             <motion.div

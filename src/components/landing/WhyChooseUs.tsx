@@ -33,7 +33,7 @@ export const WhyChooseUs = () => {
                             className="space-y-6"
                         >
                             <h2 className="text-3xl md:text-4xl font-bold leading-tight">
-                                Why Thousands Trust <span className="text-gradient">PolicyNav</span>
+                                Why Thousands Trust <span className="text-gradient">PolicyNavigator</span>
                             </h2>
                             <p className="text-muted-foreground text-lg">
                                 We've simplified the way people choose insurance. By putting transparency first, we make sure you always know what you're getting—and why.

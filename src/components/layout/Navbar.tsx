@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Shield, ChevronRight, LogOut, User, Home, Search, BrainCircuit, Scale, Calculator as CalculatorIcon } from "lucide-react";
+import { Menu, X, Shield, ChevronRight, LogOut, User, Home, Search, BrainCircuit, Scale, Calculator as CalculatorIcon, LayoutDashboard, PieChart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ModeToggle } from "@/components/mode-toggle";
 
 const navLinks = [
   { name: "Home", path: "/", icon: Home },
-  { name: "Search", path: "/ai-search", icon: Search },
+  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Search", path: "/smart-search", icon: Search },
   { name: "Quiz", path: "/quiz", icon: BrainCircuit },
+  { name: "Analysis", path: "/risk-analysis", icon: PieChart },
   { name: "Compare", path: "/compare", icon: Scale },
   { name: "Calculator", path: "/calculator", icon: CalculatorIcon },
 ];
@@ -50,7 +52,7 @@ export const Navbar = () => {
               <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/50 flex items-center justify-center group-hover:bg-primary/30 transition-shadow shadow-glow">
                 <Shield className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-xl font-bold text-foreground font-display tracking-tight">PolicyNav</span>
+              <span className="text-xl font-bold text-foreground font-display tracking-tight">PolicyNavigator</span>
             </Link>
 
             {/* Desktop Navigation */}

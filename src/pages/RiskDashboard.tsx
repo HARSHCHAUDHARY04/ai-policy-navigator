@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 // Basic logic to generate risk data from user profile
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,20 +103,22 @@ const getStatusBadge = (status: string) => {
 };
 
 const RiskDashboard = () => {
-  const userId = localStorage.getItem("userId");
+  const { user: authUser, token } = useAuth();
+  const userId = authUser?.id;
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['user', userId],
     queryFn: async () => {
-      if (!userId) return null;
-      // In a real app, we'd have a GET /api/users/:id endpoint
-      // For now, we'll just fetch all and find ours or return null
-      const response = await fetch(`${API_BASE_URL}/users`);
-      const users = await response.json();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return users.find((u: any) => u._id === userId) || users[users.length - 1]; // fallback to last user
+      if (!token) return null;
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error("Failed to fetch profile");
+      return response.json();
     },
-    enabled: !!userId
+    enabled: !!userId && !!token
   });
 
   const riskData = generateRiskData(user) || {
@@ -345,7 +348,7 @@ const RiskDashboard = () => {
             viewport={{ once: true }}
             className="max-w-4xl mx-auto text-center"
           >
-            <Link to="/recommendations">
+            <Link to="/smart-search">
               <button className="btn-premium px-10 py-5 text-lg shadow-glow-accent group">
                 Access Policy Recommendations
                 <ChevronRight className="w-6 h-6 ml-2" />

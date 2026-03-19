@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
@@ -16,6 +16,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const steps = [
   { id: 1, title: "Personal Info", icon: User },
@@ -89,8 +90,38 @@ const initialFormData: FormData = {
 };
 
 const CustomerProfile = () => {
+  const { token, user: authUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [isFetching, setIsFetching] = useState(false);
+
+  // Load existing data on mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!token) return;
+      setIsFetching(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Merge with initialFormData to ensure all keys exist
+          setFormData(prev => ({
+            ...prev,
+            ...data,
+            // Ensure email is set from auth if not in profile
+            email: data.email || authUser?.email || ""
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+    fetchUserData();
+  }, [token, authUser?.email]);
   const [direction, setDirection] = useState(1);
   const navigate = useNavigate();
 
@@ -118,8 +149,13 @@ const CustomerProfile = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            email: formData.email || authUser?.email,
+            id: authUser?.id
+          }),
         });
 
         if (!response.ok) {
@@ -129,8 +165,8 @@ const CustomerProfile = () => {
         const data = await response.json();
         console.log("Profile saved:", data);
 
-        // Save user ID to localStorage for later use in recommendations
-        localStorage.setItem("userId", data._id);
+        // Save updated user to localStorage for consistency with AuthContext
+        localStorage.setItem("policyai_user", JSON.stringify(data));
 
         navigate("/dashboard");
       } catch (error) {
@@ -185,7 +221,7 @@ const CustomerProfile = () => {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-md">
                 <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                <span className="text-sm font-bold tracking-wider uppercase text-primary/80">Profile Synthesis — Step {currentStep + 1} of {steps.length}</span>
+                <span className="text-sm font-bold tracking-wider uppercase text-primary/80">Profile Setup — Step {currentStep + 1} of {steps.length}</span>
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 tracking-tight">
                 Build Your <span className="text-gradient drop-shadow-[0_0_15px_hsl(152,80%,50%,0.3)]">Intelligence Profile</span>
@@ -463,7 +499,7 @@ const CustomerProfile = () => {
                           </div>
 
                           <div className="space-y-2">
-                            <label className="label-premium">Estimated Synthesis Value (Asset)</label>
+                            <label className="label-premium">Estimated Asset Value</label>
                             <div className="relative">
                               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">₹</span>
                               <input
@@ -674,7 +710,7 @@ const CustomerProfile = () => {
                       className="gap-2 px-10"
                       size="lg"
                     >
-                      {currentStep === steps.length - 1 ? "Initialize Synthesis" : "Process Next Node"}
+                      {currentStep === steps.length - 1 ? "Save Profile" : "Continue"}
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -724,7 +760,7 @@ const CustomerProfile = () => {
                   <div className="mt-8 p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                      <span className="text-[10px] font-bold text-white uppercase tracking-widest">Synthesis Engine Active</span>
+                      <span className="text-[10px] font-bold text-white uppercase tracking-widest">Profile Engine Active</span>
                     </div>
                     <p className="text-xs text-muted-foreground font-light leading-relaxed">
                       We're building your personalised coverage profile as you fill in each section.

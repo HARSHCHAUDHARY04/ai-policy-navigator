@@ -10,9 +10,12 @@ const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const { body, validationResult } = require('express-validator');
+const { OAuth2Client } = require('google-auth-library');
 
 // Multer setup for audio uploads
 const upload = multer({ dest: 'uploads/' });
+
 // express-mongo-sanitize is not compatible with Express v5 (req.query is read-only).
 // Using a custom sanitizer instead.
 function sanitizeObject(obj) {
@@ -31,6 +34,10 @@ function sanitizeObject(obj) {
 const Policy = require('./models/Policy');
 const Provider = require('./models/Provider');
 const User = require('./models/User');
+const axios = require('axios');
+const SavedPolicy = require('./models/SavedPolicy');
+
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'policyai_super_secret_jwt_key_2024';
 
@@ -39,6 +46,7 @@ const PORT = process.env.PORT || 5001;
 
 // ─── Gemini Setup ──────────────────────────────────────────────────────────────
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // System instruction for the model
 const systemInstruction = `You are a premium Indian insurance consultant for PolicyNav AI. 
@@ -60,14 +68,39 @@ const geminiModel = genAI.getGenerativeModel({
     }
 });
 
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+    origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, 'http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000'] : '*',
+    credentials: true
+}));
+
+app.use(helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+app.use(express.json({ limit: '10kb' })); // Limit body size
+
 // Sanitize req.body (Express v5 compatible)
 app.use((req, res, next) => {
     if (req.body) sanitizeObject(req.body);
     next();
 });
+
+// Validation Middleware
+const validate = (validations) => {
+    return async (req, res, next) => {
+        for (let validation of validations) {
+            const result = await validation.run(req);
+            if (result.errors.length) break;
+        }
+
+        const errors = validationResult(req);
+        if (errors.isEmpty()) {
+            return next();
+        }
+
+        res.status(400).json({ errors: errors.array() });
+    };
+};
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -78,6 +111,14 @@ const limiter = rateLimit({
     message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 app.use('/api/', limiter);
+
+const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10,
+    message: { message: 'Too many authentication attempts. Please try again in an hour.' }
+});
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/login', authLimiter);
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
@@ -106,6 +147,27 @@ function parseGeminiJSON(text) {
     }
 }
 
+/**
+ * Calls the Python ML Microservice for production-grade recommendations
+ */
+async function callPythonML(user) {
+    try {
+        const payload = {
+            age: parseInt(user.age) || 30,
+            income: (user.annualIncome && user.annualIncome.includes('Lakh')) ? (parseInt(user.annualIncome) > 10 ? 2 : 1) : 0,
+            smoker: user.smoker === 'Never' ? 0 : 1,
+            dependents: parseInt(user.dependents) || 0,
+            health_risk: user.preExistingConditions?.length > 0 ? 1 : 0
+        };
+
+        const response = await axios.post(`${ML_SERVICE_URL}/predict`, payload);
+        return response.data.recommendations;
+    } catch (error) {
+        console.error('Python ML Service Error:', error.message);
+        return null; // Fallback to JS-based ML
+    }
+}
+
 // ─── JWT Auth Middleware ───────────────────────────────────────────────────────
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -123,14 +185,13 @@ const authenticateToken = (req, res, next) => {
 // ─── Auth Routes ──────────────────────────────────────────────────────────────
 
 // POST /api/auth/register
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', validate([
+    body('name').trim().notEmpty().withMessage('Name is required'),
+    body('email').isEmail().withMessage('Enter a valid email'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+]), async (req, res) => {
     try {
         const { name, email, password } = req.body;
-        if (!name || !email || !password)
-            return res.status(400).json({ message: 'Name, email and password are required' });
-        if (password.length < 6)
-            return res.status(400).json({ message: 'Password must be at least 6 characters' });
-
         const existing = await User.findOne({ email: email.toLowerCase() });
         if (existing)
             return res.status(409).json({ message: 'An account with this email already exists' });
@@ -151,12 +212,12 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // POST /api/auth/login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', validate([
+    body('email').isEmail().withMessage('Enter a valid email'),
+    body('password').notEmpty().withMessage('Password is required')
+]), async (req, res) => {
     try {
         const { email, password } = req.body;
-        if (!email || !password)
-            return res.status(400).json({ message: 'Email and password are required' });
-
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user)
             return res.status(401).json({ message: 'Invalid email or password' });
@@ -187,6 +248,51 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     }
 });
 
+// POST /api/auth/google
+app.post('/api/auth/google', async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken) return res.status(400).json({ message: 'Google ID Token is required' });
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        let user = await User.findOne({ 
+            $or: [{ googleId }, { email: email.toLowerCase() }] 
+        });
+
+        if (!user) {
+            user = new User({
+                name,
+                email: email.toLowerCase(),
+                googleId,
+                avatar: picture
+            });
+            await user.save();
+        } else if (!user.googleId) {
+            // Link existing email-only account to Google
+            user.googleId = googleId;
+            if (!user.avatar) user.avatar = picture;
+            await user.save();
+        }
+
+        const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+        
+        res.json({
+            message: 'Google login successful',
+            token,
+            user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar }
+        });
+    } catch (error) {
+        console.error('Google Auth Error:', error);
+        res.status(401).json({ message: 'Invalid Google token' });
+    }
+});
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.get('/api/policies', async (req, res) => {
     try {
@@ -208,12 +314,30 @@ app.get('/api/providers', async (req, res) => {
     }
 });
 
-app.post('/api/users', async (req, res) => {
+// POST /api/users - Update or Create user profile
+app.post('/api/users', authenticateToken, async (req, res) => {
     try {
-        const user = new User(req.body);
-        await user.save();
-        res.status(201).json(user);
+        const userId = req.user.userId;
+        const updateData = { ...req.body };
+        
+        // Remove sensitive or unnecessary fields from body if present
+        delete updateData._id;
+        delete updateData.id;
+        delete updateData.email;
+        
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
+        
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.status(200).json(updatedUser);
     } catch (error) {
+        console.error("Error updating user profile:", error);
         res.status(400).json({ message: error.message });
     }
 });
@@ -244,12 +368,17 @@ app.post('/api/ai/recommend', async (req, res) => {
         };
         const primaryType = needTypeMap[needType] || 'health';
 
-        // Always produce exactly 4 DIFFERENT types, primary first
+        // Prioritize primary type for more slots (e.g. 2 slots if available)
         const allTypes = ['health', 'life', 'auto', 'property', 'travel'];
+        const otherTypes = allTypes.filter(t => t !== primaryType);
+        
+        // Slot 1 & 2: Primary, Slot 3 & 4: different types
         const orderedTypes = [
             primaryType,
-            ...allTypes.filter(t => t !== primaryType).slice(0, 3)
-        ]; // always 4 unique types
+            primaryType,
+            otherTypes[0],
+            otherTypes[1]
+        ];
 
         const typeDescriptions = {
             health: 'health/medical insurance (hospitalisation, cashless treatment)',
@@ -308,6 +437,91 @@ Return a JSON array:
     }
 });
 
+// ─── AI: Personalized Recommendations (Full Profile) ──────────────────────────
+// POST /api/ai/recommend-personalized
+app.post('/api/ai/recommend-personalized', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId);
+        if (!user) return res.status(404).json({ message: 'User profile not found.' });
+
+        const profileSummary = `
+- Age: ${user.age}
+- Smoker: ${user.smoker}
+- Health Conditions: ${user.preExistingConditions?.join(', ') || 'None'}
+- Dependents: ${user.dependents}
+- Vehicle: ${user.hasVehicle === 'Yes' ? user.vehicleType : 'None'}
+- Income: ${user.annualIncome}
+- Employment: ${user.employmentStatus}
+`;
+
+        // 1. Get policies from DB
+        let availablePolicies = await Policy.find().limit(20);
+        
+        // 2. Fallback if DB is empty (common in dev environment)
+        if (availablePolicies.length === 0) {
+            availablePolicies = [
+                { name: 'HDFC Ergo Optima Secure', provider: 'HDFC Ergo', type: 'health', monthlyPremium: 1200, coverage: '₹10 Lakh' },
+                { name: 'Star Comprehensive', provider: 'Star Health', type: 'health', monthlyPremium: 1100, coverage: '₹5 Lakh' },
+                { name: 'ICICI Prudential iProtect', provider: 'ICICI Prudential', type: 'life', monthlyPremium: 1500, coverage: '₹1 Crore' },
+                { name: 'LIC Tech Term', provider: 'LIC', type: 'life', monthlyPremium: 1400, coverage: '₹50 Lakh' },
+                { name: 'Digit Car Insurance', provider: 'Digit', type: 'auto', monthlyPremium: 800, coverage: 'IDV ₹5 Lakh' }
+            ];
+        }
+
+        // 3. Use ML Engine to find top matches
+        let mlRecommendations = [];
+        const pythonResults = await callPythonML(user);
+        
+        if (pythonResults) {
+            console.log('✅ Using Python ML Service for ranking');
+            // Sort available policies based on Python confidence for each type
+            const typeScores = {};
+            pythonResults.forEach(r => typeScores[r.type] = r.confidence);
+            
+            mlRecommendations = availablePolicies
+                .map(p => ({ ...p, mlScore: typeScores[p.type] || 0.1 }))
+                .sort((a, b) => b.mlScore - a.mlScore)
+                .slice(0, 3);
+        } else {
+            console.log('⚠️ Python ML unavailable. Sorting by premium as fallback.');
+            mlRecommendations = availablePolicies
+                .sort((a, b) => a.monthlyPremium - b.monthlyPremium)
+                .slice(0, 3);
+        }
+
+        // 4. Use Gemini to provide the "Why" for these ML-selected policies
+        const prompt = `
+USER PROFILE:
+${profileSummary}
+
+ML-SELECTED POLICIES:
+${JSON.stringify(mlRecommendations, null, 2)}
+
+Provide a professional, persuasive explanation for why each of these 3 policies was selected for this specific user.
+Return a JSON array exactly matching this schema:
+[
+  {
+    "name": "Same Name",
+    "provider": "Same Provider",
+    "type": "same type",
+    "matchScore": number (calculated by ML: 0-100),
+    "monthlyPremium": number,
+    "coverage": "₹Value",
+    "features": ["5 keys"],
+    "whyRecommended": "Explain why this matches their specific health conditions and income."
+  }
+]`;
+
+        const result = await geminiModel.generateContent(prompt);
+        const recommendations = parseGeminiJSON(result.response.text());
+
+        res.json({ recommendations, source: 'gemini-personalized' });
+    } catch (error) {
+        console.error('Personalized recommend error:', error);
+        res.status(500).json({ message: 'Failed to generate personalized recommendations.' });
+    }
+});
+
 // ─── AI: Free-Text Search ──────────────────────────────────────────────────────
 // POST /api/ai/search
 // Body: { query: "best health insurance for diabetes under ₹3000/month" }
@@ -319,41 +533,151 @@ app.post('/api/ai/search', async (req, res) => {
             return res.status(400).json({ message: 'Please enter a more detailed search query.' });
         }
 
+        // 1. Fetch potential matches from our database first
+        const typeSynonyms = {
+            'health': ['health', 'medical', 'hospital', 'disease', 'illness'],
+            'life': ['life', 'term', 'death', 'income protection', 'family cover'],
+            'auto': ['auto', 'vehicle', 'car', 'bike', 'motor', 'scooter', 'wheeler'],
+            'property': ['property', 'home', 'house', 'building', 'flat'],
+            'travel': ['travel', 'trip', 'flight', 'abroad', 'baggage']
+        };
+
+        let matchedType = null;
+        for (const [type, synonyms] of Object.entries(typeSynonyms)) {
+            if (synonyms.some(s => query.toLowerCase().includes(s))) {
+                matchedType = type;
+                break;
+            }
+        }
+        
+        let dbPolicies = [];
+        if (matchedType) {
+            dbPolicies = await Policy.find({ type: matchedType }).limit(5);
+        } else {
+            // Broader keyword search if no type found
+            const keywords = query.toLowerCase().split(' ').filter(w => w.length > 3);
+            dbPolicies = await Policy.find({
+                $or: [
+                    { name: { $regex: keywords.join('|'), $options: 'i' } },
+                    { features: { $regex: keywords.join('|'), $options: 'i' } }
+                ]
+            }).limit(5);
+        }
+
         const prompt = `
 Search Query: "${query}"
+Existing Database Policies: ${JSON.stringify(dbPolicies)}
 
-Recommend exactly 3 real Indian insurance policies.
+Recommend 3 real Indian insurance policies. 
+If any policies from the "Existing Database Policies" list are highly relevant, prioritize them.
+If not, recommend other real Indian plans.
 Return a JSON array:
 [
   {
     "name": "Exact Plan Name",
     "provider": "Real Insurer",
     "type": "health|life|auto|property|travel",
-    "matchScore": number (75-98, sorted desc),
+    "matchScore": number,
     "monthlyPremium": number,
-    "coverage": "String (e.g. ₹20L)",
-    "badge": "String (Optional, only for top result)",
-    "features": ["4-5 key features"],
-    "notIncluded": ["2 main exclusions"],
-    "whyRecommended": "Concise technical explanation.",
-    "providerUrl": "Real product link"
+    "coverage": "String",
+    "features": ["4-5 items"],
+    "whyRecommended": "Technical explanation.",
+    "providerUrl": "Real product link",
+    "dbId": "Optional MongoDB _id if from database list"
   }
 ]`;
 
         const result = await geminiModel.generateContent(prompt);
-        const text = result.response.text();
-        const recommendations = parseGeminiJSON(text);
+        const recommendations = parseGeminiJSON(result.response.text());
 
-        res.json({ recommendations, query, source: 'gemini' });
+        res.json({ recommendations, query, source: 'gemini-hybrid' });
     } catch (error) {
         console.error('Gemini search error:', error);
         let userMessage = 'AI search failed. Please try again.';
         if (error.message?.includes('API key not valid')) {
-            userMessage = 'The AI engine is currently misconfigured (Invalid API Key). Please update the server configuration.';
+            userMessage = 'The AI engine is currently misconfigured (Invalid API Key).';
         } else if (error.message?.includes('quota')) {
-            userMessage = 'AI engine quota exceeded. Please try again later.';
+            userMessage = 'AI engine quota exceeded.';
         }
         res.status(500).json({ message: userMessage, error: error.message });
+    }
+});
+
+// ─── Policy Management ───────────────────────────────────────────────────────
+
+// POST /api/policies/save
+app.post('/api/policies/save', authenticateToken, async (req, res) => {
+    try {
+        const { policyId, name, provider, type, monthlyPremium, coverage, features, whyRecommended } = req.body;
+        
+        let actualPolicyId = policyId;
+        
+        // If it's a generated policy (no dbId), create it or find by name
+        if (!policyId) {
+            let existing = await Policy.findOne({ name, provider });
+            if (!existing) {
+                existing = new Policy({ 
+                    name, provider, type, monthlyPremium, coverage,
+                    features: features || [],
+                    whyRecommended: whyRecommended || 'Personalized recommendation'
+                });
+                await existing.save();
+            }
+            actualPolicyId = existing._id;
+        }
+
+        const saved = new SavedPolicy({
+            user: req.user.userId,
+            policy: actualPolicyId
+        });
+        await saved.save();
+        res.status(201).json({ message: 'Policy saved to your dashboard.', saved });
+    } catch (error) {
+        if (error.code === 11000) return res.status(409).json({ message: 'Policy already saved.' });
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// GET /api/policies/saved
+app.get('/api/policies/saved', authenticateToken, async (req, res) => {
+    try {
+        const saved = await SavedPolicy.find({ user: req.user.userId }).populate('policy');
+        res.json(saved);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+
+app.get('/api/analytics/risk-summary', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Logic similar to RiskDashboard.tsx but backend-driven
+        const healthScore = (user.smoker === 'Never' || user.exerciseFrequency === 'Daily') ? 90 : 70;
+        const propertyScore = (user.homeOwnership === 'Own' || user.homeOwnership === 'Family') ? 85 : 70;
+        const vehicleScore = (user.hasVehicle === 'Yes' || user.hasVehicle === 'Multiple') ? 90 : 50;
+        const employmentScore = (user.employmentStatus === 'Full-time' || user.employmentStatus === 'Self-employed') ? 90 : 70;
+
+        const summary = {
+            overallScore: Math.round((healthScore + propertyScore + vehicleScore + employmentScore) / 4),
+            sectors: [
+                { name: 'Health', score: healthScore },
+                { name: 'Property', score: propertyScore },
+                { name: 'Auto', score: vehicleScore },
+                { name: 'Income', score: employmentScore }
+            ],
+            insights: [
+                healthScore < 80 ? 'Health coverage gap detected based on smoking status.' : 'Health risk parameters optimal.',
+                user.dependents > 0 ? 'High priority: Lifecycle protection (Term Insurance) recommended for dependents.' : 'Standard protection level.'
+            ]
+        };
+
+        res.json(summary);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
@@ -555,6 +879,18 @@ STRICT RULES:
         res.status(500).json({ message: 'Chat failed. AI engine error.', error: error.message });
     }
 });
+
+// ─── Static Frontend Serving ────────────────────────────────────────────────
+const frontendPath = path.join(__dirname, '../dist');
+if (fs.existsSync(frontendPath)) {
+    app.use(express.static(frontendPath));
+    // Catch-all for React Router but exclude API routes
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path.join(frontendPath, 'index.html'));
+        }
+    });
+}
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);

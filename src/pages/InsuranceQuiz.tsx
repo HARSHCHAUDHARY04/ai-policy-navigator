@@ -34,6 +34,8 @@ interface Recommendation {
   notIncluded: string[];
   whyRecommended: string;
   providerUrl?: string;
+  mlScore?: number;
+  matchConfidence?: 'High' | 'Medium' | 'Low';
 }
 
 const questions: Question[] = [
@@ -108,7 +110,7 @@ const InsuranceQuiz = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Smart Policy Recommender</span>
+              <span className="text-sm font-medium text-primary">Smart Recommendation Engine</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
               Find Your <span className="text-gradient">Perfect Policy</span>
@@ -164,7 +166,7 @@ const InsuranceQuiz = () => {
                     <Loader2 className="w-12 h-12 text-primary animate-spin" />
                     <Sparkles className="w-5 h-5 text-primary absolute -top-1 -right-1" />
                   </div>
-                  <h2 className="text-xl font-bold text-foreground">Gemini is analysing your profile…</h2>
+                  <h2 className="text-xl font-bold text-foreground">Analyzing your profile…</h2>
                   <p className="text-sm text-muted-foreground text-center max-w-sm">
                     Searching through hundreds of Indian insurance policies to find your best matches.
                   </p>
@@ -186,7 +188,7 @@ const InsuranceQuiz = () => {
                     <Sparkles className="w-5 h-5 text-primary" />
                     <h2 className="text-2xl font-bold">Your Personalised Recommendations</h2>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-6">Based on your profile, Gemini recommends these policies:</p>
+                  <p className="text-sm text-muted-foreground mb-6">Based on your profile, we recommend these policies:</p>
 
                   {recommendations.map((rec, idx) => (
                     <motion.div
@@ -199,15 +201,28 @@ const InsuranceQuiz = () => {
                       <div className="p-6">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <h3 className="text-lg font-bold text-foreground">{rec.name}</h3>
+                              {rec.matchConfidence && (
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border ${
+                                    rec.matchConfidence === 'High' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
+                                    rec.matchConfidence === 'Medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
+                                    'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                                }`}>
+                                  <Sparkles className="w-3 h-3" /> {rec.matchConfidence} Confidence
+                                </span>
+                              )}
                               {rec.badge && (
                                 <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary flex items-center gap-1">
                                   <Star className="w-3 h-3" /> {rec.badge}
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground mb-3">{rec.provider}</p>
+                            <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                              {rec.provider}
+                              <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                              <span className="text-[10px] uppercase tracking-tighter text-white/40 font-bold">ML Verified</span>
+                            </p>
                             <div className="flex flex-wrap gap-2">
                               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-primary/10 text-primary">
                                 <Shield className="w-3 h-3" /> {rec.coverage}
@@ -218,8 +233,10 @@ const InsuranceQuiz = () => {
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-3xl font-bold text-gradient">{rec.matchScore}%</p>
-                            <p className="text-xs text-muted-foreground">match</p>
+                            <p className="text-3xl font-bold text-gradient">
+                              {rec.mlScore ? Math.round(rec.mlScore * 100) : rec.matchScore}%
+                            </p>
+                            <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Fit Score</p>
                             <CheckCircle2 className="w-5 h-5 text-primary mx-auto mt-1" />
                           </div>
                         </div>

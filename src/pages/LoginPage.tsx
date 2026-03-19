@@ -3,15 +3,29 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Shield, Mail, Lock, Eye, EyeOff, AlertCircle, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPwd, setShowPwd] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const onGoogleSuccess = async (credentialResponse: any) => {
+        setLoading(true);
+        setError("");
+        try {
+            await googleLogin(credentialResponse.credential);
+            navigate("/");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Google login failed.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -131,11 +145,31 @@ export default function LoginPage() {
                         </button>
                     </form>
 
+                    <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-white/5"></div>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-[#0A0A0B] px-4 text-muted-foreground font-semibold tracking-widest">Or Secure Entry</span>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={onGoogleSuccess}
+                            onError={() => setError("Google Authentication Failed")}
+                            theme="filled_black"
+                            shape="pill"
+                            text="continue_with"
+                            width="100%"
+                        />
+                    </div>
+
                     <div className="mt-8 text-center border-t border-white/5 pt-6">
                         <p className="text-sm font-light text-muted-foreground">
                             New to the network?{" "}
                             <Link to="/signup" className="text-primary font-semibold hover:text-white transition-colors">
-                                Create a terminal
+                                Create an account
                             </Link>
                         </p>
                     </div>

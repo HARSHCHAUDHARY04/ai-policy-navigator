@@ -215,8 +215,8 @@ const PrivacyPage = () => {
               </div>
               <p className="text-sm text-muted-foreground mt-8">
                 Questions? Contact our privacy team at{" "}
-                <a href="mailto:privacy@insureai.com" className="text-primary hover:underline">
-                  privacy@insureai.com
+                <a href="mailto:privacy@policynavigator.com" className="text-primary hover:underline">
+                  privacy@policynavigator.com
                 </a>
               </p>
             </div>

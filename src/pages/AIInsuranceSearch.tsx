@@ -17,8 +17,11 @@ import {
     Zap,
     MessageSquare,
     Mic,
-    MicOff
+    MicOff,
+    Bookmark
 } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 interface Recommendation {
     name: string;
@@ -32,6 +35,9 @@ interface Recommendation {
     notIncluded: string[];
     whyRecommended: string;
     providerUrl?: string;
+    dbId?: string;
+    mlScore?: number;
+    matchConfidence?: 'High' | 'Medium' | 'Low';
 }
 
 const EXAMPLE_QUERIES = [
@@ -50,6 +56,7 @@ const typeColors: Record<string, string> = {
 };
 
 const AIInsuranceSearch = () => {
+    const { token } = useAuth();
     const [query, setQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
@@ -89,9 +96,36 @@ const AIInsuranceSearch = () => {
             if (!response.ok) throw new Error(data.message || "Server communication failed.");
             setRecommendations(data.recommendations || []);
         } catch (err: unknown) {
-            setError((err as Error).message || "Cognitive engine offline. Please try again.");
+            setError((err as Error).message || "Search engine offline. Please try again.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleSavePolicy = async (policy: Recommendation) => {
+        if (!token) {
+            toast.error("Authentication required to save policies.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/policies/save`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    policyId: policy.dbId,
+                    ...policy
+                }),
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "Failed to save policy.");
+            toast.success("Policy saved to your dashboard!");
+        } catch (err: unknown) {
+            toast.error((err as Error).message);
         }
     };
 
@@ -226,7 +260,7 @@ const AIInsuranceSearch = () => {
                                     ) : (
                                         <>
                                             <Sparkles className="w-4 h-4 text-black group-hover/btn:text-primary transition-colors" />
-                                            <span className="group-hover/btn:text-primary transition-colors">Synthesize</span>
+                                            <span className="group-hover/btn:text-primary transition-colors">Find Policies</span>
                                         </>
                                     )}
                                 </button>
@@ -277,9 +311,9 @@ const AIInsuranceSearch = () => {
                                     <Sparkles className="w-8 h-8 text-primary animate-pulse" />
                                 </div>
                                 <div className="relative z-10 gap-2">
-                                    <h2 className="text-2xl font-display font-bold text-white mb-2 tracking-wide">Processing Query Structure</h2>
+                                    <h2 className="text-2xl font-display font-bold text-white mb-2 tracking-wide">Analyzing Your Needs</h2>
                                     <p className="text-muted-foreground font-light max-w-sm mx-auto">
-                                        Cross-referencing database vectors with cognitive heuristics...
+                                        Finding the most suitable policies for your profile...
                                     </p>
                                 </div>
                             </motion.div>
@@ -309,9 +343,9 @@ const AIInsuranceSearch = () => {
                                     <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                                         <Shield className="w-5 h-5 text-primary" />
                                     </div>
-                                    <h2 className="text-2xl font-display font-bold text-white">Synthesized Results</h2>
+                                    <h2 className="text-2xl font-display font-bold text-white">Recommended Policies</h2>
                                     <span className="ml-auto px-3 py-1 bg-surface rounded-full text-xs font-medium text-muted-foreground uppercase tracking-wider border border-white/5">
-                                        {recommendations.length} Matches Node
+                                        {recommendations.length} Matches Found
                                     </span>
                                 </div>
 
@@ -337,7 +371,9 @@ const AIInsuranceSearch = () => {
                                                                 <Star className="w-5 h-5 drop-shadow-md" />
                                                             </div>
                                                             <div className="text-right md:text-center">
-                                                                <div className="text-2xl md:text-3xl font-display font-bold text-white">{rec.matchScore}%</div>
+                                                                <div className="text-2xl md:text-3xl font-display font-bold text-white">
+                                                                  {rec.mlScore ? Math.round(rec.mlScore * 100) : rec.matchScore}%
+                                                              </div>
                                                                 <div className="text-[10px] font-bold tracking-widest text-primary uppercase">Affinity</div>
                                                             </div>
                                                         </div>
@@ -348,13 +384,31 @@ const AIInsuranceSearch = () => {
                                                                 <div>
                                                                     <div className="flex items-center gap-3 mb-1 flex-wrap">
                                                                         <h3 className="text-2xl font-display font-bold text-white tracking-tight">{rec.name}</h3>
+                                                                        {rec.matchConfidence && (
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border ${
+                                                                                rec.matchConfidence === 'High' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
+                                                                                rec.matchConfidence === 'Medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
+                                                                                'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                                                                            }`}>
+                                                                                <Sparkles className="w-3 h-3" /> {rec.matchConfidence} Confidence
+                                                                            </span>
+                                                                        )}
+                                                                        {rec.mlScore && (
+                                                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 border border-primary/30 text-primary flex items-center gap-1">
+                                                                                <Zap className="w-3 h-3" /> ML Match: {Math.round(rec.mlScore * 100)}%
+                                                                            </span>
+                                                                        )}
                                                                         {rec.badge && (
                                                                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent/20 border border-accent/30 text-accent flex items-center gap-1">
-                                                                                <Zap className="w-3 h-3" /> {rec.badge}
+                                                                                {rec.badge}
                                                                             </span>
                                                                         )}
                                                                     </div>
-                                                                    <p className="text-base font-light text-muted-foreground">{rec.provider}</p>
+                                                                    <p className="text-base font-light text-muted-foreground flex items-center gap-2">
+                                                                        {rec.provider}
+                                                                        <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                                                                        <span className="text-[10px] uppercase tracking-tighter text-white/40 font-bold">Data-Verified Analysis</span>
+                                                                    </p>
                                                                 </div>
                                                                 <div className="md:text-right bg-white/5 px-4 py-2 rounded-xl border border-white/5 inline-block self-start">
                                                                     <div className="text-xl font-display font-bold text-white flex items-baseline gap-1">
@@ -383,17 +437,29 @@ const AIInsuranceSearch = () => {
                                                                     <span className="uppercase tracking-widest text-[10px]">{isExpanded ? "Collapse Analysis" : "Expand Analysis"}</span>
                                                                 </button>
 
-                                                                {rec.providerUrl && (
-                                                                    <a
-                                                                        href={rec.providerUrl}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        onClick={(e) => e.stopPropagation()}
-                                                                        className="flex items-center gap-1.5 text-xs font-medium text-white/60 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
+                                                                <div className="flex items-center gap-3">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleSavePolicy(rec);
+                                                                        }}
+                                                                        className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5"
                                                                     >
-                                                                        Gateway <ExternalLink className="w-3.5 h-3.5" />
-                                                                    </a>
-                                                                )}
+                                                                        <Bookmark className="w-3.5 h-3.5" /> Save
+                                                                    </button>
+
+                                                                    {rec.providerUrl && (
+                                                                        <a
+                                                                            href={rec.providerUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                            className="flex items-center gap-1.5 text-xs font-medium text-white/60 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
+                                                                        >
+                                                                            Gateway <ExternalLink className="w-3.5 h-3.5" />
+                                                                        </a>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>

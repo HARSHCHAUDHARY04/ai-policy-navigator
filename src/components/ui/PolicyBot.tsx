@@ -12,7 +12,7 @@ interface Message {
 export function PolicyBot({ contextText }: { contextText?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm PolicyBot. How can I help you with your insurance questions today?" }
+    { role: "assistant", content: "Hi! I'm your Insurance Guide. How can I help you with your insurance questions today?" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -102,8 +102,8 @@ export function PolicyBot({ contextText }: { contextText?: string }) {
                   <Bot className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">PolicyBot</h3>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none">AI Assistant</p>
+                  <h3 className="text-sm font-bold text-foreground">PolicyGuide</h3>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none">Expert Support</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">

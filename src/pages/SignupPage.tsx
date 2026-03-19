@@ -3,9 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Shield, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function SignupPage() {
-    const { register } = useAuth();
+    const { register, googleLogin } = useAuth();
     const navigate = useNavigate();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -14,6 +15,19 @@ export default function SignupPage() {
     const [showPwd, setShowPwd] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const onGoogleSuccess = async (credentialResponse: any) => {
+        setLoading(true);
+        setError("");
+        try {
+            await googleLogin(credentialResponse.credential);
+            navigate("/profile");
+        } catch (err: unknown) {
+            setError((err as Error).message || "Google registration failed.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -113,7 +127,7 @@ export default function SignupPage() {
                             <div className="w-10 h-10 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center">
                                 <Shield className="w-5 h-5 text-primary" />
                             </div>
-                            <span className="text-xl font-display font-bold text-white">PolicyAI</span>
+                            <span className="text-xl font-display font-bold text-white">PolicyNavigator</span>
                         </div>
                         <h1 className="text-3xl font-display font-bold text-white">Access Node</h1>
                     </div>
@@ -123,7 +137,7 @@ export default function SignupPage() {
                         <div className="absolute top-0 left-10 right-10 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
                         <div className="mb-8 hidden md:block">
-                            <h2 className="text-3xl font-display font-bold text-white mb-2">Create Terminal</h2>
+                            <h2 className="text-3xl font-display font-bold text-white mb-2">Join PolicyNavigator</h2>
                             <p className="text-muted-foreground font-light">Zero cost baseline access. No credit metrics required.</p>
                         </div>
 
@@ -206,13 +220,33 @@ export default function SignupPage() {
                                 {loading ? (
                                     <>
                                         <div className="w-5 h-5 border-2 border-background/20 border-t-background rounded-full animate-spin" />
-                                        <span className="font-semibold text-background">Provisioning...</span>
+                                        <span className="font-semibold text-background">Creating account...</span>
                                     </>
                                 ) : (
-                                    <span className="font-semibold text-background">Initialize Terminal →</span>
+                                    <span className="font-semibold text-background">Create Account →</span>
                                 )}
                             </button>
                         </form>
+
+                        <div className="relative my-8">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-white/5"></div>
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-[#0A0A0B] px-4 text-muted-foreground font-semibold tracking-widest">Or Secure Link</span>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center">
+                            <GoogleLogin
+                                onSuccess={onGoogleSuccess}
+                                onError={() => setError("Google Authentication Failed")}
+                                theme="filled_black"
+                                shape="pill"
+                                text="signup_with"
+                                width="100%"
+                            />
+                        </div>
 
                         <div className="mt-8 text-center border-t border-white/5 pt-6">
                             <p className="text-sm font-light text-muted-foreground">

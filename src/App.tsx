@@ -13,15 +13,18 @@ import CompareInsurance from "./pages/CompareInsurance";
 import PremiumCalculator from "./pages/PremiumCalculator";
 import InsuranceQuiz from "./pages/InsuranceQuiz";
 import AIInsuranceSearch from "./pages/AIInsuranceSearch";
+import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import NotFound from "./pages/NotFound";
 import { PolicyBot } from "./components/ui/PolicyBot";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
         <TooltipProvider>
@@ -32,12 +35,13 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/profile" element={<CustomerProfile />} />
-            <Route path="/dashboard" element={<RiskDashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/risk-analysis" element={<RiskDashboard />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/compare" element={<CompareInsurance />} />
             <Route path="/calculator" element={<PremiumCalculator />} />
             <Route path="/quiz" element={<InsuranceQuiz />} />
-            <Route path="/ai-search" element={<AIInsuranceSearch />} />
+            <Route path="/smart-search" element={<AIInsuranceSearch />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -48,6 +52,7 @@ const App = () => (
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

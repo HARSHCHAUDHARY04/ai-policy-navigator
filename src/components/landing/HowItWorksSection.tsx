@@ -12,7 +12,7 @@ const steps = [
     {
         icon: ScanSearch,
         title: "We Scan the Market",
-        description: "PolicyNav scans hundreds of plans across India's top insurers to identify the ones that match your needs.",
+        description: "PolicyNavigator scans hundreds of plans across India's top insurers to identify the ones that match your needs.",
         color: "bg-accent/20 text-accent",
         step: "02",
     },
@@ -25,7 +25,7 @@ const steps = [
     },
     {
         icon: CheckCircle,
-        title: "Smart Recommendations",
+        title: "Expert Recommendations",
         description: "Get policy recommendations ranked by fit, not by commission. Every suggestion is explained clearly.",
         color: "bg-success/20 text-success",
         step: "04",
@@ -38,7 +38,7 @@ export const HowItWorksSection = () => {
             <div className="container mx-auto px-6 relative z-10">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-display font-bold mb-4 tracking-tight">
-                        How <span className="text-gradient">PolicyNav</span> Works
+                        How <span className="text-gradient">PolicyNavigator</span> Works
                     </h2>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light">
                         From your first click to the perfect coverage—our process takes the complexity out of insurance.

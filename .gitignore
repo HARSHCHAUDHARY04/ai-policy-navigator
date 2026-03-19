@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+server/node_modules
+server/ml_service/venv
+server/ml_service/__pycache__
 
 # Editor directories and files
 .vscode/*

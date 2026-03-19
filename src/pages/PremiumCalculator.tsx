@@ -12,6 +12,10 @@ const PremiumCalculator = () => {
   const [cityType, setCityType] = useState<"metro" | "non-metro">("metro");
   const [calculated, setCalculated] = useState(false);
 
+  const [isSmoker, setIsSmoker] = useState(false);
+  const [hasPreExisting, setHasPreExisting] = useState(false);
+  const [incomeLevel, setIncomeLevel] = useState(500000); // Annual income for risk factor
+
   const calculatePremium = () => {
     setCalculated(true);
   };
@@ -21,7 +25,13 @@ const PremiumCalculator = () => {
   const familyFactor = familySize === 1 ? 1 : familySize === 2 ? 1.7 : familySize <= 4 ? 2.3 : 3.0;
   const coverageFactor = coverage / 500000;
   const cityFactor = cityType === "metro" ? 1.15 : 1.0;
-  const annualPremium = Math.round(basePremium * ageFactor * familyFactor * coverageFactor * cityFactor);
+  
+  // New factors
+  const smokerFactor = isSmoker ? 1.4 : 1.0;
+  const healthFactor = hasPreExisting ? 1.25 : 1.0;
+  const incomeFactor = incomeLevel > 1500000 ? 0.9 : 1.0; // Higher income might imply lower risk/better lifestyle
+
+  const annualPremium = Math.round(basePremium * ageFactor * familyFactor * coverageFactor * cityFactor * smokerFactor * healthFactor * incomeFactor);
   const monthlyPremium = Math.round(annualPremium / 12);
 
   const coverageOptions = [
@@ -100,6 +110,33 @@ const PremiumCalculator = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Health Factors */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">Smoking Status</label>
+                <div className="flex gap-2">
+                  <button onClick={() => setIsSmoker(false)} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${!isSmoker ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>Non-Smoker</button>
+                  <button onClick={() => setIsSmoker(true)} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${isSmoker ? "bg-destructive text-white" : "bg-secondary text-muted-foreground"}`}>Smoker</button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">Pre-existing Conditions</label>
+                <div className="flex gap-2">
+                  <button onClick={() => setHasPreExisting(false)} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${!hasPreExisting ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>None</button>
+                  <button onClick={() => setHasPreExisting(true)} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${hasPreExisting ? "bg-warning text-black font-bold" : "bg-secondary text-muted-foreground"}`}>Yes</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Income Level */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <IndianRupee className="w-4 h-4 text-primary" /> Annual Income: ₹{incomeLevel.toLocaleString("en-IN")}
+              </label>
+              <input type="range" min={200000} max={5000000} step={100000} value={incomeLevel} onChange={(e) => setIncomeLevel(Number(e.target.value))} className="w-full accent-primary" />
+              <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-bold"><span>2L</span><span>50L</span></div>
             </div>
 
             <Button onClick={calculatePremium} size="lg" className="w-full">
