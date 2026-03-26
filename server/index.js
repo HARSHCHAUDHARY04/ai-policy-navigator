@@ -994,7 +994,7 @@ const frontendPath = path.join(__dirname, '../dist');
 if (fs.existsSync(frontendPath)) {
     app.use(express.static(frontendPath));
     // Catch-all for React Router but exclude API routes
-    app.get('/:any*', (req, res, next) => {
+    app.get(/.*/, (req, res, next) => {
         if (req.path.startsWith('/api')) {
             return next();
         }
