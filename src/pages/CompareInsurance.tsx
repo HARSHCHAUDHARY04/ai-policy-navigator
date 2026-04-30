@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion } from "framer-motion";
@@ -92,6 +92,51 @@ const CompareInsurance = () => {
     availablePolicies[0],
     availablePolicies[1],
   ]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('aiComparePolicies');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const aiPolicies: Policy[] = parsed.map((rec: any, idx: number) => {
+            // Try to extract numeric coverage from string (e.g. "₹5L" -> 500000)
+            let coverageNum = 0;
+            if (typeof rec.coverage === 'string') {
+              const match = rec.coverage.match(/\d+/);
+              if (match) {
+                let val = parseInt(match[0], 10);
+                if (rec.coverage.toUpperCase().includes('L')) val *= 100000;
+                if (rec.coverage.toUpperCase().includes('CR')) val *= 10000000;
+                coverageNum = val;
+              }
+            } else if (typeof rec.coverage === 'number') {
+              coverageNum = rec.coverage;
+            }
+
+            return {
+              id: `ai-${Date.now()}-${idx}`,
+              name: rec.name || "AI Policy",
+              provider: rec.provider || "AI Provider",
+              premium: rec.monthlyPremium * 12 || 10000, // Monthly to Annual
+              coverage: coverageNum || 500000,
+              claimRatio: Math.round(rec.matchScore || 90), // Fake it based on score
+              hospitalNetwork: 8000 + Math.floor(Math.random() * 4000), // Fake it
+              waitingPeriod: 30,
+              roomRent: "As per AI Plan",
+              preExisting: 3,
+              features: rec.features || ["Standard Coverage"],
+            };
+          });
+          
+          setSelectedPolicies(aiPolicies.slice(0, 4));
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse AI policies for comparison", e);
+    }
+  }, []);
   const [showSelector, setShowSelector] = useState(false);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customPolicy, setCustomPolicy] = useState<Partial<Policy>>({

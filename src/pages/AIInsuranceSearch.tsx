@@ -18,7 +18,10 @@ import {
     MessageSquare,
     Mic,
     MicOff,
-    Bookmark
+    Bookmark,
+    Scale,
+    CheckSquare,
+    Square
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -64,9 +67,33 @@ const AIInsuranceSearch = () => {
     const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
     const [searched, setSearched] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [selectedForCompare, setSelectedForCompare] = useState<Recommendation[]>([]);
+    const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognitionRef = useRef<any>(null);
     const shouldSubmitRef = useRef(false);
+
+    const toggleCompare = (policy: Recommendation) => {
+        const isSelected = selectedForCompare.some(p => p.name === policy.name && p.provider === policy.provider);
+        if (isSelected) {
+            setSelectedForCompare(prev => {
+                const next = prev.filter(p => !(p.name === policy.name && p.provider === policy.provider));
+                localStorage.setItem('aiComparePolicies', JSON.stringify(next));
+                return next;
+            });
+        } else {
+            if (selectedForCompare.length >= 3) {
+                toast.error("You can compare a maximum of 3 policies at a time.");
+                return;
+            }
+            setSelectedForCompare(prev => {
+                const next = [...prev, policy];
+                localStorage.setItem('aiComparePolicies', JSON.stringify(next));
+                return next;
+            });
+        }
+    };
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -442,6 +469,24 @@ const AIInsuranceSearch = () => {
                                                                     <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
+                                                                            toggleCompare(rec);
+                                                                        }}
+                                                                        className={`flex items-center gap-1.5 text-xs font-bold transition-colors px-3 py-1.5 rounded-lg border ${
+                                                                            selectedForCompare.some(p => p.name === rec.name && p.provider === rec.provider)
+                                                                                ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
+                                                                                : "text-white/60 hover:text-white border-white/10 hover:bg-white/5"
+                                                                        }`}
+                                                                    >
+                                                                        {selectedForCompare.some(p => p.name === rec.name && p.provider === rec.provider) ? (
+                                                                            <><CheckSquare className="w-3.5 h-3.5" /> Selected</>
+                                                                        ) : (
+                                                                            <><Square className="w-3.5 h-3.5" /> Compare</>
+                                                                        )}
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
                                                                             handleSavePolicy(rec);
                                                                         }}
                                                                         className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5"
@@ -560,6 +605,114 @@ const AIInsuranceSearch = () => {
             <div className="relative z-20">
                 <Footer />
             </div>
+
+            {/* Floating Compare Action Bar */}
+            <AnimatePresence>
+                {selectedForCompare.length > 0 && !isCompareModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-surface border border-white/10 shadow-2xl px-6 py-3 rounded-full backdrop-blur-md"
+                    >
+                        <span className="text-sm font-semibold text-white">
+                            <span className="text-primary">{selectedForCompare.length}</span>/3 Policies Selected
+                        </span>
+                        <Button 
+                            size="sm" 
+                            onClick={() => setIsCompareModalOpen(true)}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wider uppercase text-xs px-6 rounded-full shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                        >
+                            Compare Now <Scale className="w-3.5 h-3.5 ml-2" />
+                        </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Compare Modal */}
+            <AnimatePresence>
+                {isCompareModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="w-full max-w-6xl bg-surface border border-white/10 shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        >
+                            <div className="flex items-center justify-between p-6 border-b border-white/5 bg-background/50">
+                                <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                                    <Scale className="w-5 h-5 text-primary" />
+                                    Compare Policies
+                                </h2>
+                                <button 
+                                    onClick={() => setIsCompareModalOpen(false)}
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-auto p-6">
+                                <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${selectedForCompare.length}, minmax(0, 1fr))` }}>
+                                    {selectedForCompare.map((policy, idx) => (
+                                        <div key={idx} className="flex flex-col border border-white/5 rounded-2xl bg-white/[0.02] p-6">
+                                            {/* Header */}
+                                            <div className="mb-6 pb-6 border-b border-white/5">
+                                                <h3 className="text-lg font-bold text-white mb-2">{policy.name}</h3>
+                                                <p className="text-sm text-muted-foreground">{policy.provider}</p>
+                                            </div>
+                                            
+                                            {/* Premium */}
+                                            <div className="mb-6">
+                                                <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1 block">Monthly Premium</span>
+                                                <div className="text-2xl font-display font-bold text-primary">
+                                                    ₹{policy.monthlyPremium?.toLocaleString("en-IN")}
+                                                </div>
+                                            </div>
+
+                                            {/* Coverage */}
+                                            <div className="mb-6">
+                                                <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1 block">Coverage</span>
+                                                <div className="text-sm font-medium text-white">{policy.coverage}</div>
+                                            </div>
+                                            
+                                            {/* Features */}
+                                            <div className="mb-6 flex-1">
+                                                <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-3 block">Included Modules</span>
+                                                <ul className="space-y-3">
+                                                    {policy.features?.map((f, i) => (
+                                                        <li key={i} className="flex items-start gap-2 text-sm text-white/80 font-light">
+                                                            <Check className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                                                            <span className="leading-tight">{f}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            
+                                            {/* Exclusions */}
+                                            <div>
+                                                <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-3 block">Not Covered</span>
+                                                {policy.notIncluded && policy.notIncluded.length > 0 ? (
+                                                    <ul className="space-y-3">
+                                                        {policy.notIncluded.map((item, i) => (
+                                                            <li key={i} className="flex items-start gap-2 text-sm text-white/60 font-light">
+                                                                <X className="w-4 h-4 text-destructive/50 flex-shrink-0 mt-0.5" />
+                                                                <span className="leading-tight">{item}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-sm italic text-white/40">No major exclusions noted.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div >
     );
 };
