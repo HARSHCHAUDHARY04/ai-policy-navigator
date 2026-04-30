@@ -59,14 +59,41 @@ STRICT RULES:
 5. Always return output as a structured JSON object/array matching the requested schema.
 6. Real provider URLs only.`;
 
-const geminiModel = genAI.getGenerativeModel({ 
-    model: 'gemini-2.5-flash',
+const geminiModel = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash-lite',
     systemInstruction,
-    generationConfig: { 
+    generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 1.0 
+        temperature: 1.0
     }
 });
+
+// Separate model for chat (no JSON mime type — chat returns markdown)
+const geminiChatModel = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash-lite',
+    systemInstruction,
+    generationConfig: {
+        temperature: 0.7
+    }
+});
+
+// Helper: Parse Gemini API errors into user-friendly messages
+function parseGeminiError(error) {
+    const msg = error.message || '';
+    if (msg.includes('API key') && msg.includes('leaked')) {
+        return 'AI API key has been revoked. Please generate a new key at https://aistudio.google.com/apikey';
+    }
+    if (msg.includes('API key not valid') || msg.includes('INVALID_API_KEY')) {
+        return 'Invalid AI API key. Please update the server configuration.';
+    }
+    if (msg.includes('quota') || msg.includes('429')) {
+        return 'AI quota exceeded. Please try again later or upgrade your API plan.';
+    }
+    if (msg.includes('404') || msg.includes('not found')) {
+        return 'AI model not available. Please check server configuration.';
+    }
+    return 'AI service temporarily unavailable. Please try again.';
+}
 
 app.use(cors({
     origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, 'http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000'] : '*',
@@ -78,6 +105,12 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 app.use(express.json({ limit: '10kb' })); // Limit body size
+
+// Request Logger
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 
 // Sanitize req.body (Express v5 compatible)
 app.use((req, res, next) => {
@@ -160,11 +193,16 @@ async function callPythonML(user) {
             health_risk: user.preExistingConditions?.length > 0 ? 1 : 0
         };
 
-        const response = await axios.post(`${ML_SERVICE_URL}/predict`, payload);
+        const response = await axios.post(`${ML_SERVICE_URL}/predict`, payload, { timeout: 5000 });
         return response.data.recommendations;
     } catch (error) {
-        console.error('Python ML Service Error:', error.message);
-        return null; // Fallback to JS-based ML
+        // Only log once, not full stack trace
+        if (error.code === 'ECONNREFUSED') {
+            console.log('⚠️  ML Service not running (optional). Using fallback ranking.');
+        } else {
+            console.log('⚠️  ML Service error:', error.message);
+        }
+        return null; // Fallback to premium-based sorting
     }
 }
 
@@ -261,8 +299,8 @@ app.post('/api/auth/google', async (req, res) => {
         const payload = ticket.getPayload();
         const { sub: googleId, email, name, picture } = payload;
 
-        let user = await User.findOne({ 
-            $or: [{ googleId }, { email: email.toLowerCase() }] 
+        let user = await User.findOne({
+            $or: [{ googleId }, { email: email.toLowerCase() }]
         });
 
         if (!user) {
@@ -281,7 +319,7 @@ app.post('/api/auth/google', async (req, res) => {
         }
 
         const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
-        
+
         res.json({
             message: 'Google login successful',
             token,
@@ -319,22 +357,22 @@ app.post('/api/users', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
         const updateData = { ...req.body };
-        
+
         // Remove sensitive or unnecessary fields from body if present
         delete updateData._id;
         delete updateData.id;
         delete updateData.email;
-        
+
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { $set: updateData },
             { new: true, runValidators: true }
         );
-        
+
         if (!updatedUser) {
             return res.status(404).json({ message: 'User not found' });
         }
-        
+
         res.status(200).json(updatedUser);
     } catch (error) {
         console.error("Error updating user profile:", error);
@@ -372,7 +410,7 @@ app.post('/api/ai/recommend', async (req, res) => {
         // Prioritize primary type for more slots (e.g. 2 slots if available)
         const allTypes = ['health', 'life', 'auto', 'property', 'travel', 'education'];
         const otherTypes = allTypes.filter(t => t !== primaryType);
-        
+
         // Slot 1 & 2: Primary, Slot 3 & 4: different types
         const orderedTypes = [
             primaryType,
@@ -431,10 +469,8 @@ Return a JSON array:
 
         res.json({ recommendations: enforced, source: 'gemini' });
     } catch (error) {
-        console.error('Recommend error:', error);
-        let userMessage = 'Recommendation failed. Please try again.';
-        if (error.message?.includes('API key not valid')) userMessage = 'Invalid API Key. Please update the server configuration.';
-        else if (error.message?.includes('quota')) userMessage = 'Quota exceeded. Please try again later.';
+        console.error('Recommend error:', error.message);
+        const userMessage = parseGeminiError(error);
         res.status(500).json({ message: userMessage, error: error.message });
     }
 });
@@ -458,7 +494,7 @@ app.post('/api/ai/recommend-personalized', authenticateToken, async (req, res) =
 
         // 1. Get policies from DB
         let availablePolicies = await Policy.find().limit(20);
-        
+
         // 2. Fallback if DB is empty (common in dev environment)
         if (availablePolicies.length === 0) {
             availablePolicies = [
@@ -473,13 +509,13 @@ app.post('/api/ai/recommend-personalized', authenticateToken, async (req, res) =
         // 3. Use ML Engine to find top matches
         let mlRecommendations = [];
         const pythonResults = await callPythonML(user);
-        
+
         if (pythonResults) {
             console.log('✅ Using Python ML Service for ranking');
             // Sort available policies based on Python confidence for each type
             const typeScores = {};
             pythonResults.forEach(r => typeScores[r.type] = r.confidence);
-            
+
             mlRecommendations = availablePolicies
                 .map(p => ({ ...p, mlScore: typeScores[p.type] || 0.1 }))
                 .sort((a, b) => b.mlScore - a.mlScore)
@@ -519,8 +555,9 @@ Return a JSON array exactly matching this schema:
 
         res.json({ recommendations, source: 'gemini-personalized' });
     } catch (error) {
-        console.error('Personalized recommend error:', error);
-        res.status(500).json({ message: 'Failed to generate personalized recommendations.' });
+        console.error('Personalized recommend error:', error.message);
+        const userMessage = parseGeminiError(error);
+        res.status(500).json({ message: userMessage, error: error.message });
     }
 });
 
@@ -530,6 +567,7 @@ Return a JSON array exactly matching this schema:
 app.post('/api/ai/search', async (req, res) => {
     try {
         const { query } = req.body;
+        console.log('🔍 AI Search Query:', query);
 
         if (!query || query.trim().length < 5) {
             return res.status(400).json({ message: 'Please enter a more detailed search query.' });
@@ -552,7 +590,7 @@ app.post('/api/ai/search', async (req, res) => {
                 break;
             }
         }
-        
+
         let dbPolicies = [];
         if (matchedType) {
             dbPolicies = await Policy.find({ type: matchedType }).limit(5);
@@ -595,13 +633,8 @@ Return a JSON array:
 
         res.json({ recommendations, query, source: 'gemini-hybrid' });
     } catch (error) {
-        console.error('Gemini search error:', error);
-        let userMessage = 'AI search failed. Please try again.';
-        if (error.message?.includes('API key not valid')) {
-            userMessage = 'The AI engine is currently misconfigured (Invalid API Key).';
-        } else if (error.message?.includes('quota')) {
-            userMessage = 'AI engine quota exceeded.';
-        }
+        console.error('Gemini search error:', error.message);
+        const userMessage = parseGeminiError(error);
         res.status(500).json({ message: userMessage, error: error.message });
     }
 });
@@ -611,17 +644,19 @@ Return a JSON array:
 // POST /api/policies/save
 app.post('/api/policies/save', authenticateToken, async (req, res) => {
     try {
-        const { policyId, name, provider, type, monthlyPremium, coverage, features, whyRecommended } = req.body;
-        
+        const { policyId, name, provider, type, monthlyPremium, coverage, features, whyRecommended, matchScore, notIncluded } = req.body;
+
         let actualPolicyId = policyId;
-        
+
         // If it's a generated policy (no dbId), create it or find by name
         if (!policyId) {
             let existing = await Policy.findOne({ name, provider });
             if (!existing) {
-                existing = new Policy({ 
+                existing = new Policy({
                     name, provider, type, monthlyPremium, coverage,
+                    matchScore: matchScore || 85, // Required by schema
                     features: features || [],
+                    notIncluded: notIncluded || [],
                     whyRecommended: whyRecommended || 'Personalized recommendation'
                 });
                 await existing.save();
@@ -694,8 +729,8 @@ app.post('/api/ai/transcribe', upload.single('audio'), async (req, res) => {
 
         const filePath = req.file.path;
         const fileContent = fs.readFileSync(filePath);
-        
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
         const result = await model.generateContent([
             "Listen to this audio and transcribe it accurately. Only return the transcription text, nothing else.",
@@ -716,7 +751,7 @@ app.post('/api/ai/transcribe', upload.single('audio'), async (req, res) => {
     } catch (error) {
         console.error('Transcription error:', error);
         res.status(500).json({ message: 'Transcription failed.', error: error.message });
-        
+
         // Cleanup if file exists
         if (req.file && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
@@ -966,7 +1001,7 @@ STRICT RULES:
 6. Use simple markdown for formatting (bolding, lists).
 `;
 
-        const chat = geminiModel.startChat({
+        const chat = geminiChatModel.startChat({
             history: [
                 { role: "user", parts: [{ text: systemPrompt }] },
                 { role: "model", parts: [{ text: "Understood. I am PolicyBot. I will assist the user with their insurance queries based on the provided context and general Indian insurance standards." }] },
@@ -984,8 +1019,9 @@ STRICT RULES:
 
         res.json({ content: responseText });
     } catch (error) {
-        console.error('PolicyBot error:', error);
-        res.status(500).json({ message: 'Chat failed. AI engine error.', error: error.message });
+        console.error('PolicyBot error:', error.message);
+        const userMessage = parseGeminiError(error);
+        res.status(500).json({ message: userMessage, error: error.message });
     }
 });
 

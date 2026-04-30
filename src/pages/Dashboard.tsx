@@ -206,7 +206,7 @@ const Dashboard = () => {
                                         </div>
                                     ) : savedPolicies && savedPolicies.length > 0 ? (
                                         <div className="grid gap-6">
-                                            {savedPolicies.map((saved, idx) => {
+                                            {savedPolicies.filter(s => s.policy).map((saved, idx) => {
                                                 const isExpanded = expandedIdx === idx;
                                                 return (
                                                     <motion.div 

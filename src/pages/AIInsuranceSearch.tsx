@@ -328,7 +328,8 @@ const AIInsuranceSearch = () => {
                             >
                                 <div className="absolute inset-0 bg-destructive/5" />
                                 <p className="text-destructive font-bold text-lg mb-2 relative z-10">{error}</p>
-                                <p className="text-sm text-muted-foreground relative z-10">Neural link severed. Verify port 5000 connectivity.</p>
+                                <p className="text-sm text-muted-foreground relative z-10">Neural link severed. Verify port 5001 connectivity.</p>
+
                             </motion.div>
                         )}
 
@@ -510,15 +511,19 @@ const AIInsuranceSearch = () => {
                                                                             <div className="w-6 h-6 rounded-full bg-destructive/20 flex items-center justify-center">
                                                                                 <X className="w-3 h-3 text-destructive" />
                                                                             </div>
-                                                                            Omitted Blocks
+                                                                            Not Covered (Exclusions)
                                                                         </h4>
-                                                                        <ul className="space-y-3">
-                                                                            {rec.notIncluded?.map((item, i) => (
-                                                                                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground font-light">
-                                                                                    <X className="w-4 h-4 text-destructive/50 flex-shrink-0 mt-0.5" /> <span className="leading-snug">{item}</span>
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
+                                                                        {rec.notIncluded && rec.notIncluded.length > 0 ? (
+                                                                            <ul className="space-y-3">
+                                                                                {rec.notIncluded.map((item, i) => (
+                                                                                    <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground font-light">
+                                                                                        <X className="w-4 h-4 text-destructive/50 flex-shrink-0 mt-0.5" /> <span className="leading-snug">{item}</span>
+                                                                                    </li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        ) : (
+                                                                            <p className="text-sm text-muted-foreground font-light italic mt-2">No major exclusions noted. Please check policy document for detailed terms.</p>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
